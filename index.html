@@ -1,0 +1,2050 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="assets/logo.png" />
+<title>Crumble — the on-chain AI desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+/* ============ CRUMBLE DESK (static port of the Crumble fullstack build) ============ */
+:root{
+  --ink:#0a2540;
+  --green:#2bd97c;
+  --red:#ff7a7a;
+  --amber:#ffb224;
+  --glass:rgba(8,30,54,.80);
+  --glass-2:rgba(6,24,44,.92);
+  --glass-line:rgba(255,255,255,.13);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:"Plus Jakarta Sans",system-ui,sans-serif;color:#fff;background:#2f7fe0;-webkit-font-smoothing:antialiased;overflow:hidden}
+button{font-family:inherit;cursor:pointer;min-height:36px}
+::selection{background:#bfe0ff}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ============ DESK ============ */
+.os{position:relative;height:100dvh;display:flex;flex-direction:column;overflow:hidden;isolation:isolate;background:#2f7fe0}
+.sky-layer{position:absolute;inset:0;z-index:0;background-position:center;background-size:cover;background-repeat:no-repeat;transition:filter .9s ease}
+.sky-shade{position:absolute;inset:0;z-index:0;transition:background .9s ease;background:transparent}
+.os::after{
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.45;
+  background:
+    radial-gradient(circle at 50% 42%, transparent 0 240px, rgba(255,255,255,.26) 241px, transparent 242px),
+    radial-gradient(circle at 50% 42%, transparent 0 430px, rgba(255,255,255,.18) 431px, transparent 432px),
+    linear-gradient(rgba(255,255,255,.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.09) 1px, transparent 1px);
+  background-size:auto,auto,72px 72px,72px 72px;
+}
+
+.topbar{position:relative;z-index:30;display:flex;align-items:center;gap:4px;padding:10px 16px 4px;color:#fff}
+.brand-logo{width:36px;height:38px;object-fit:contain;flex:none;margin-right:6px;filter:drop-shadow(0 3px 8px rgba(6,40,80,.35))}
+.dock-logo{width:40px;height:42px;object-fit:contain;margin-bottom:8px;filter:drop-shadow(0 3px 8px rgba(6,40,80,.35))}
+.auth-logo-img{width:64px;height:68px;object-fit:contain;filter:drop-shadow(0 8px 24px rgba(0,0,0,.4))}
+.auth-top .mark-img{width:22px;height:24px;object-fit:contain;flex:none}
+.topbar .navbtn{width:34px;height:34px;min-height:34px;border-radius:9px;border:1px solid transparent;background:transparent;color:rgba(235,246,255,.85);display:grid;place-items:center;font-size:15px}
+.topbar .navbtn:hover{background:rgba(255,255,255,.14);color:#fff}
+.topbar .navbtn.active{background:rgba(255,255,255,.22);border-color:rgba(255,255,255,.18);color:#fff}
+.topbar .spacer{flex:1}
+.auth-area{display:flex;align-items:center;gap:6px}
+.btn-login{background:transparent;border:0;color:rgba(240,248,255,.92);font-weight:600;font-size:14px;padding:8px 12px;border-radius:999px;text-shadow:0 1px 8px rgba(10,50,100,.35)}
+.btn-login:hover{background:rgba(255,255,255,.16);color:#fff}
+.btn-signup{background:#fff;border:0;color:#12283f;font-weight:700;font-size:14px;padding:8px 16px;border-radius:9px;box-shadow:0 6px 18px rgba(6,40,80,.25)}
+.btn-signup:hover{background:#eaf4ff}
+.account-wrap{position:relative}
+.account-chip{display:inline-flex;align-items:center;gap:8px;background:rgba(8,30,54,.55);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:999px;padding:5px 13px 5px 5px;font-weight:600;font-size:13.5px;backdrop-filter:blur(10px)}
+.account-chip .avatar{width:26px;height:26px;border-radius:50%;background:#fff;color:#0a2540;display:grid;place-items:center;font-weight:800;font-size:12.5px}
+.account-chip .who{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.account-menu{position:absolute;right:0;top:calc(100% + 8px);width:250px;background:var(--glass-2);border:1px solid var(--glass-line);border-radius:14px;padding:8px;box-shadow:0 24px 50px rgba(4,32,64,.45);z-index:40;backdrop-filter:blur(16px)}
+.account-menu .am-id{padding:8px 10px 10px;border-bottom:1px solid rgba(255,255,255,.10);font-size:13px;color:#cfe4f7;word-break:break-all}
+.account-menu .am-id b{display:block;color:#fff;font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+.account-menu button{width:100%;background:transparent;border:0;color:#fff;text-align:left;font-weight:600;font-size:14px;padding:9px 10px;border-radius:9px}
+.account-menu button:hover{background:rgba(255,255,255,.12)}
+
+.os-body{position:relative;z-index:2;flex:1;display:flex;min-height:0}
+.dock{width:56px;flex:none;display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 0}
+.dock button{width:37px;height:37px;min-height:37px;border-radius:10px;border:1px solid transparent;background:transparent;color:rgba(235,246,255,.85);display:grid;place-items:center}
+.dock button svg{width:19px;height:19px}
+.dock button:hover{background:rgba(255,255,255,.14);color:#fff}
+.dock button.active{background:rgba(255,255,255,.24);border-color:rgba(255,255,255,.16);color:#fff}
+.dock .grow{flex:1}
+
+.canvas{position:relative;flex:1;min-width:0;min-height:0}
+.win{
+  position:absolute;width:296px;max-width:calc(100vw - 90px);
+  background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid var(--glass-line);border-radius:16px;color:#eaf4ff;
+  box-shadow:0 24px 50px rgba(4,32,64,.35), inset 0 1px 0 rgba(255,255,255,.10);
+  overflow:hidden;transition:opacity .4s, filter .4s;
+}
+.win::after{
+  content:"";position:absolute;left:6%;right:6%;bottom:-14px;height:26px;pointer-events:none;
+  background:linear-gradient(90deg, rgba(255,130,80,.45), rgba(170,110,255,.40), rgba(50,220,160,.45));
+  filter:blur(12px);opacity:.75;
+}
+.win.dim{opacity:.45;filter:saturate(.4)}
+.win-head{display:flex;align-items:baseline;gap:8px;padding:12px 14px 8px;cursor:grab;user-select:none;touch-action:none;position:relative;z-index:1}
+.win-head:active{cursor:grabbing}
+.win-head .wtitle{font-weight:700;font-size:13.5px;display:flex;align-items:center;gap:7px;white-space:nowrap}
+.win-head .wtitle svg{width:15px;height:15px;flex:none}
+.win-head .wsub{color:#9db9d2;font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.win-head .wagent{margin-left:auto;color:#8fb0cc;font-size:11.5px;font-weight:600;white-space:nowrap}
+.win-foot{display:flex;align-items:center;gap:8px;padding:10px 14px 12px;color:#dcecfb;font-size:12.5px;font-weight:500;position:relative;z-index:1}
+.spin{width:13px;height:13px;flex:none;border-radius:50%;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;animation:sp 1s linear infinite}
+.spin.idle{animation:none;border-top-color:rgba(255,255,255,.25);background:var(--green);border-color:transparent;width:8px;height:8px;margin:2px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.spin{animation:none}}
+
+#win-terminal{left:4.5%;top:6%}
+#win-browser{right:4.5%;top:6%}
+#win-chart{left:4.5%;bottom:7%}
+
+.ttable{width:100%;border-collapse:collapse;font-family:"JetBrains Mono",monospace;font-size:12px;position:relative;z-index:1}
+.ttable th{color:#7e9cb8;font-weight:500;text-align:left;padding:4px 8px;font-size:11px}
+.ttable th:first-child,.ttable td:first-child{padding-left:14px}
+.ttable th:last-child,.ttable td:last-child{padding-right:14px}
+.ttable td{padding:4.5px 8px;color:#dcecfb;white-space:nowrap}
+.ttable td.coin{font-weight:700;color:#fff}
+.ttable tr.faded td{color:#7e9cb8}.ttable tr.faded td.coin{color:#a9c2d8}
+.ttable td.up{color:var(--green)} .ttable td.down{color:var(--red)}
+.call{font-weight:700;font-size:11px;letter-spacing:.04em;opacity:0;transform:translateX(4px);transition:.35s}
+.call.show{opacity:1;transform:none}
+.call.buy{color:var(--green)} .call.pass{color:var(--red)} .call.watch{color:#fff}
+.live-pill{display:inline-flex;align-items:center;gap:5px;background:rgba(43,217,124,.16);color:var(--green);font-size:10px;font-weight:800;letter-spacing:.07em;padding:3px 8px;border-radius:999px;flex:none}
+.live-pill i{width:6px;height:6px;border-radius:50%;background:var(--green);display:block}
+.live-pill.stale{background:rgba(255,178,36,.16);color:var(--amber)}
+.live-pill.stale i{background:var(--amber)}
+.term-msg{padding:10px 14px;font-size:12.5px;color:#ffd98a;line-height:1.5;position:relative;z-index:1}
+.term-msg button{margin-left:8px;background:#fff;color:#0a2540;border:0;font-weight:700;border-radius:999px;padding:4px 12px;font-size:12px;min-height:28px}
+
+.checks{list-style:none;margin:2px 0 4px;padding:2px 14px 8px;display:grid;gap:7px;font-size:13px;position:relative;z-index:1}
+.checks li{display:flex;gap:9px;align-items:flex-start;color:#7e97ad;transition:color .3s}
+.checks li .mark{flex:none;width:16px;text-align:center;font-weight:800;font-size:13px;color:transparent;transition:.3s}
+.checks li.done{color:#eaf4ff}
+.checks li.done .mark{color:var(--green)}
+.checks li.warn.done{color:#ffe1c2}
+.checks li.warn.done .mark{color:var(--amber)}
+.checks .verdict{color:#9db9d2;font-size:12.5px;opacity:0;transition:.4s}
+.checks .verdict.show{opacity:1}
+
+.chartbox{padding:6px 10px 2px;position:relative;z-index:1}
+.chartbox svg{width:100%;height:104px;display:block}
+.chart-line{stroke-dasharray:600;stroke-dashoffset:0}
+.os.playing .chart-line{animation:draw 3.4s ease forwards}
+@keyframes draw{from{stroke-dashoffset:600}to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion: reduce){.os.playing .chart-line{animation:none}}
+
+.win-track{position:absolute;inset:0;z-index:1}
+.hero{position:absolute;left:50%;top:1.5%;transform:translateX(-50%);width:min(560px,calc(100% - 40px));z-index:9;display:flex;flex-direction:column;align-items:center;text-align:center;pointer-events:none}
+.hero-logo{width:46px;height:49px;object-fit:contain;filter:drop-shadow(0 6px 16px rgba(6,40,80,.35))}
+.hero h1{margin:8px 0 0;font-size:37px;font-weight:500;letter-spacing:-.015em;line-height:1.12;color:#fff;text-shadow:0 2px 22px rgba(15,45,95,.45)}
+.hero p{margin:10px 0 0;font-size:15.5px;line-height:1.5;font-weight:500;color:rgba(255,255,255,.95);max-width:470px;text-shadow:0 1px 14px rgba(15,45,95,.5)}
+.carousel-dots{display:none}
+
+/* ============ ENTRANCE — staggered keyframe sequence ============
+   The desk renders in its pre state (.intro-pre: elements transparent and
+   shifted down). JS flips the desk to .intro-play only once the desk is
+   ACTUALLY on screen — an IntersectionObserver on the desk root is the
+   primary signal, because a shell can pre-load this page in a webview
+   whose document already reports "visible" (and whose rAFs already tick)
+   long before the visitor is looking at it. First interaction, focus,
+   pageshow, and a long fallback timer act as backstops. The play phase
+   uses keyframe animations with fill-mode both. After the sequence, both
+   classes drop so nothing here overrides later states. */
+@keyframes crumbleRiseSoft{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes crumbleSkyIn{from{opacity:0;transform:scale(1.05)}to{opacity:1;transform:scale(1)}}
+@keyframes crumbleRiseIn{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes crumbleLogoIn{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes crumblePickerIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes crumbleFadeIn{from{opacity:0}to{opacity:1}}
+.intro-pre .sky-layer{opacity:0;transform:scale(1.05)}
+.intro-pre .topbar,.intro-pre .dock,.intro-pre .carousel-dots,.intro-pre .bottombar,.intro-pre .ext-btn{opacity:0}
+.intro-pre .hero-logo{opacity:0;transform:translateY(10px) scale(.96)}
+.intro-pre .hero h1,.intro-pre .hero p,.intro-pre .askbar,.intro-pre #win-terminal,.intro-pre #win-browser,.intro-pre #win-chart{opacity:0;transform:translateY(22px)}
+.intro-pre .locpicker{opacity:0;transform:translateY(14px)}
+.intro-play .sky-layer{animation:crumbleSkyIn 1.15s ease both}
+.intro-play .topbar{animation:crumbleFadeIn .7s ease .05s both}
+.intro-play .dock{animation:crumbleFadeIn .8s ease .35s both}
+.intro-play .hero-logo{animation:crumbleLogoIn .75s cubic-bezier(.22,.8,.32,1) .18s both}
+.intro-play .hero h1{animation:crumbleRiseIn .85s cubic-bezier(.22,.8,.32,1) .32s both}
+.intro-play .hero p{animation:crumbleRiseIn .85s cubic-bezier(.22,.8,.32,1) .50s both}
+.intro-play #win-terminal{animation:crumbleRiseIn .9s cubic-bezier(.22,.8,.32,1) .66s both}
+.intro-play #win-browser{animation:crumbleRiseIn .9s cubic-bezier(.22,.8,.32,1) .80s both}
+.intro-play #win-chart{animation:crumbleRiseIn .9s cubic-bezier(.22,.8,.32,1) .94s both}
+.intro-play .carousel-dots{animation:crumbleFadeIn .6s ease 1.08s both}
+.intro-play .askbar{animation:crumbleRiseIn .9s cubic-bezier(.22,.8,.32,1) 1.02s both}
+.intro-play .locpicker{animation:crumblePickerIn .85s cubic-bezier(.22,.8,.32,1) 1.16s both}
+.intro-play .bottombar{animation:crumbleFadeIn .7s ease 1.22s both}
+.intro-play .ext-btn{animation:crumbleFadeIn .7s ease 1.28s both}
+.result-card.show{animation:crumbleRiseSoft .5s cubic-bezier(.22,.8,.32,1) both}
+@media (prefers-reduced-motion: reduce){
+  .intro-play .sky-layer,.intro-play .topbar,.intro-play .dock,.intro-play .hero-logo,.intro-play .hero p,.intro-play .hero h1,.intro-play #win-terminal,.intro-play #win-browser,.intro-play #win-chart,.intro-play .carousel-dots,.intro-play .askbar,.intro-play .locpicker,.intro-play .bottombar,.intro-play .ext-btn{animation:crumbleFadeIn .45s ease both}
+  .intro-play .dock{animation-delay:.08s}
+  .intro-play .hero-logo{animation-delay:.12s}
+  .intro-play .hero h1{animation-delay:.18s}
+  .intro-play .hero p{animation-delay:.24s}
+  .intro-play #win-terminal{animation-delay:.30s}
+  .intro-play #win-browser{animation-delay:.36s}
+  .intro-play #win-chart{animation-delay:.42s}
+  .intro-play .askbar{animation-delay:.48s}
+  .intro-play .locpicker{animation-delay:.54s}
+  .intro-play .carousel-dots{animation-delay:.58s}
+  .intro-play .bottombar{animation-delay:.62s}
+  .intro-play .ext-btn{animation-delay:.66s}
+}
+
+.center-stack{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);width:min(680px, calc(100% - 40px));z-index:10;display:flex;flex-direction:column;align-items:center;gap:14px}
+.askbar{width:100%;background:var(--glass-2);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--glass-line);border-radius:20px;color:#fff;box-shadow:0 30px 60px rgba(4,32,64,.40), inset 0 1px 0 rgba(255,255,255,.10);padding:16px 14px 12px;position:relative;overflow:hidden}
+.askbar::after{content:"";position:absolute;left:6%;right:6%;bottom:-14px;height:26px;pointer-events:none;background:linear-gradient(90deg, rgba(255,130,80,.45), rgba(170,110,255,.40), rgba(50,220,160,.45));filter:blur(12px);opacity:.7}
+.askbar form{display:flex;flex-direction:column;gap:14px;position:relative;z-index:1}
+.ask-input{width:100%;background:transparent;border:0;outline:0;color:#fff;font:inherit;font-size:16.5px;font-weight:500;text-align:center;padding:6px 8px;min-height:36px}
+.ask-input::placeholder{color:#b9d2e8}
+.ask-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.icon-btn{width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;display:grid;place-items:center;font-size:17px;flex:none}
+.icon-btn:hover{background:rgba(255,255,255,.12)}
+.wallet-btn{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:999px;padding:7px 13px;font-size:13px;font-weight:600}
+.wallet-btn:hover{background:rgba(255,255,255,.12)}
+.ask-row .right{margin-left:auto;display:flex;align-items:center;gap:9px}
+.stepper{display:inline-flex;align-items:center;gap:2px;border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:2px}
+.stepper button{width:32px;height:32px;min-height:32px;border-radius:50%;border:0;background:transparent;color:#fff;font-size:16px;display:grid;place-items:center}
+.stepper button:hover{background:rgba(255,255,255,.14)}
+.stepper b{min-width:20px;text-align:center;font-size:14px}
+.mic-ghost{background:transparent;border:0;color:#cfe4f7;display:grid;place-items:center;width:32px;height:32px;border-radius:50%}
+.mic-ghost:hover{background:rgba(255,255,255,.12);color:#fff}
+.voice-btn{width:38px;height:38px;border-radius:50%;border:0;background:#fff;color:#0a2540;display:grid;place-items:center;flex:none}
+.voice-btn svg{width:18px;height:18px}
+.voice-btn.listening{background:var(--green)}
+.send-btn{border:0;background:#fff;color:#0a2540;font-weight:700;border-radius:999px;padding:9px 16px}
+
+.result-card{display:none;width:100%;background:#fff;color:var(--ink);border-radius:16px;padding:14px 16px;box-shadow:0 24px 50px rgba(4,32,64,.35);border:1px solid rgba(255,255,255,.6)}
+.result-card.show{display:block}
+.result-card .r-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pill{font-size:11px;font-weight:800;letter-spacing:.06em;padding:4px 9px;border-radius:999px}
+.pill.buy{background:#dcf7e9;color:#0a6b3c}
+.pill.src{background:#e7f1fb;color:#075fb8}
+.result-card h3{margin:0;font-size:16px}
+.result-card p{margin:8px 0 0;color:#33506e;font-size:13.5px;line-height:1.55}
+.result-card .r-actions{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+.result-card .r-actions button{border-radius:999px;padding:8px 14px;font-weight:700;font-size:13px}
+.btn-primary{background:#0b7ef0;color:#fff;border:0}
+.btn-primary:hover{background:#075fb8}
+.btn-ghost{background:#fff;color:var(--ink);border:1px solid #dce9f4}
+.pill.pass{background:#fde3e3;color:#8f1d1d}
+.pill.watch{background:#fdf0d3;color:#7a5200}
+.pill.err{background:#fde3e3;color:#8f1d1d}
+.result-card.error{border-color:#f0b4b4}
+.result-card .ask-err-note{color:#7c8ea1;font-size:12.5px}
+.result-card .ask-err-note code{font-family:"JetBrains Mono",monospace;font-size:12px;background:#eef4fa;border-radius:5px;padding:1px 5px;color:#0a2540}
+.ai-note{margin:0;width:100%;text-align:center;color:rgba(255,255,255,.94);font-size:12.5px;line-height:1.55;font-weight:500;text-shadow:0 1px 10px rgba(10,50,100,.45);padding:0 10px}
+.ai-note code{font-family:"JetBrains Mono",monospace;font-size:12px;background:rgba(6,24,44,.45);border:1px solid rgba(255,255,255,.22);border-radius:5px;padding:1px 5px;color:#fff;text-shadow:none}
+body.light-mode .ai-note{color:rgba(10,37,64,.85);text-shadow:none}
+body.light-mode .ai-note code{background:rgba(255,255,255,.65);border-color:rgba(10,37,64,.18);color:#0a2540}
+
+.locpicker{width:min(560px,100%);background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--glass-line);border-radius:16px;color:#fff;padding:12px 14px;box-shadow:0 24px 50px rgba(4,32,64,.35)}
+.loc-head{display:flex;align-items:center;gap:8px;font-size:13.5px;margin-bottom:10px}
+.loc-head b{font-weight:700}
+.loc-head span{color:#9db9d2;font-weight:500}
+.loc-head button{margin-left:auto;background:transparent;border:0;color:#cfe4f7;font-size:15px;width:36px;height:36px;border-radius:8px}
+.loc-head button:hover{background:rgba(255,255,255,.12)}
+.loc-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
+.loc-thumb{position:relative;border:2px solid transparent;border-radius:10px;padding:0;min-height:0;height:52px;overflow:hidden;background:#7db8ec;transition:transform .15s, border-color .15s, box-shadow .15s}
+.loc-thumb i{position:absolute;inset:0;background-position:center;background-size:cover;background-repeat:no-repeat;display:block}
+.loc-thumb:hover{transform:translateY(-1px)}
+.loc-thumb:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.loc-thumb.sel{border-color:#fff;box-shadow:0 0 0 2px rgba(10,40,80,.45), 0 6px 14px rgba(4,32,64,.35)}
+.loc-thumb .badge{position:absolute;right:5px;bottom:5px;width:18px;height:18px;border-radius:50%;background:#fff;color:#0a2540;font-size:11px;font-weight:800;display:none;place-items:center;box-shadow:0 2px 6px rgba(4,32,64,.4);z-index:2}
+.loc-thumb.sel .badge{display:grid}
+.loc-foot{display:flex;align-items:center;margin-top:10px;font-size:13px;color:#eaf4ff;font-weight:600}
+.loc-foot button{margin-left:auto;background:#fff;color:#0a2540;border:0;font-weight:700;border-radius:999px;padding:8px 18px}
+.loc-foot button:hover{background:#eaf4ff}
+
+.ext-btn{position:absolute;right:18px;bottom:52px;z-index:5;display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);color:#fff;backdrop-filter:blur(10px);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;box-shadow:0 12px 28px rgba(4,32,64,.28)}
+.ext-btn:hover{background:rgba(255,255,255,.26)}
+.reopen-loc{position:absolute;right:18px;bottom:60px;z-index:5;display:inline-flex;align-items:center;gap:7px;background:rgba(7,30,54,.7);border:1px solid var(--glass-line);color:#fff;border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600}
+
+.bottombar{position:relative;z-index:20;display:flex;align-items:center;gap:10px;padding:6px 16px 10px;color:rgba(230,242,252,.75);font-size:12.5px}
+.bottombar .modes{margin-left:auto;display:flex;gap:14px}
+.bottombar .modes button{background:transparent;border:0;color:rgba(220,236,250,.65);font-weight:600;padding:6px 4px;display:inline-flex;gap:6px;align-items:center;font-size:12.5px}
+.bottombar .modes button.active{color:#fff}
+
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);z-index:120;background:#0a2540;color:#fff;padding:11px 18px;border-radius:999px;font-size:13.5px;font-weight:600;opacity:0;pointer-events:none;transition:.35s;box-shadow:0 16px 40px rgba(4,32,64,.4);max-width:calc(100vw - 32px);text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ============ SIDEBAR PANEL ============ */
+.side-scrim{position:fixed;inset:0;z-index:60;background:rgba(5,8,18,.45);opacity:0;pointer-events:none;transition:opacity .3s ease}
+.side-scrim.show{opacity:1;pointer-events:auto}
+.sidebar{position:fixed;top:10px;bottom:10px;left:10px;z-index:70;width:260px;max-width:calc(100vw - 20px);background:rgba(21,18,31,.98);border:1px solid rgba(255,255,255,.07);border-radius:22px;color:#f4f2fa;display:flex;flex-direction:column;padding:18px 16px 12px;box-shadow:0 30px 70px rgba(2,0,16,.55);transform:translateX(calc(-100% - 18px));transition:transform .34s cubic-bezier(.32,.72,.28,1),visibility 0s linear .34s;visibility:hidden}
+.side-resize{position:absolute;top:0;right:-2px;bottom:0;width:10px;cursor:ew-resize;touch-action:none;z-index:5}
+.side-resize::after{content:"";position:absolute;top:50%;right:3px;transform:translateY(-50%);width:3px;height:44px;border-radius:99px;background:rgba(255,255,255,.28);opacity:0;transition:opacity .2s}
+.sidebar:hover .side-resize::after,.side-resize:active::after{opacity:1}
+body.side-resizing{cursor:ew-resize;user-select:none}
+body.side-resizing .sidebar{transition:none}
+.sidebar.open{transform:none;visibility:visible;transition:transform .34s cubic-bezier(.32,.72,.28,1)}
+@media (prefers-reduced-motion: reduce){.sidebar,.side-scrim{transition:none}}
+.side-top{display:flex;align-items:center;padding:2px 4px 14px}
+.side-logo{width:34px;height:36px;object-fit:contain;filter:drop-shadow(0 3px 8px rgba(0,0,0,.4))}
+.side-compose{margin-left:auto;width:38px;height:38px;min-height:38px;border-radius:10px;border:0;background:transparent;color:#d9d5ea;display:grid;place-items:center}
+.side-compose:hover{background:rgba(255,255,255,.10);color:#fff}
+.side-compose svg{width:21px;height:21px}
+.side-search{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.05);border-radius:12px;padding:0 13px;min-height:48px;color:#9d99b5}
+.side-search svg{width:19px;height:19px;flex:none}
+.side-search input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:#fff;font:inherit;font-size:16px;font-weight:500;height:46px}
+.side-search input::placeholder{color:#9d99b5}
+.side-search:focus-within{border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.11)}
+.side-menu{margin-top:10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;flex:1;padding-bottom:8px}
+.side-item{display:flex;align-items:center;gap:14px;width:100%;background:transparent;border:0;color:#eceaf6;font-size:16.5px;font-weight:500;text-align:left;padding:12px 12px;border-radius:12px;min-height:50px}
+.side-item svg{width:22px;height:22px;flex:none;color:#cfcbe0}
+.side-item:hover{background:rgba(255,255,255,.07)}
+.side-item.active{background:rgba(255,255,255,.11);color:#fff}
+.side-item.active svg{color:#fff}
+.side-empty{margin:14px 12px;color:#9d99b5;font-size:14.5px}
+.side-foot{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;border-top:1px solid rgba(255,255,255,.09);padding:12px 2px 4px;margin-top:6px}
+.side-foot-left{display:flex;align-items:center;gap:2px;flex-wrap:wrap}
+.side-foot-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}
+.side-docs{display:inline-flex;align-items:center;gap:7px;background:transparent;border:0;color:#eceaf6;font-size:13.5px;font-weight:500;padding:7px 7px;border-radius:10px;min-height:36px}
+.side-docs svg{width:18px;height:18px;color:#cfcbe0}
+.side-docs:hover{background:rgba(255,255,255,.07);color:#fff}
+.side-foot-icon{width:36px;height:36px;min-height:36px;border-radius:10px;border:0;background:transparent;display:grid;place-items:center;color:#eceaf6;padding:0}
+.side-foot-icon svg{width:18px;height:18px}
+.side-foot-icon:hover{background:rgba(255,255,255,.07);color:#fff}
+.side-x{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:#eceaf6}
+.side-x svg{width:17px;height:17px}
+.side-x:hover{background:rgba(255,255,255,.07);color:#fff}
+.side-loc-btn,.side-theme-btn{display:inline-flex;align-items:center;gap:6px;background:transparent;border:0;color:#eceaf6;font-size:12.5px;font-weight:600;padding:7px 8px;border-radius:10px;min-height:32px;white-space:nowrap;text-align:right}
+.side-loc-btn svg,.side-theme-btn svg{width:16px;height:16px;flex:none;color:#cfcbe0}
+.side-loc-btn:hover,.side-theme-btn:hover{background:rgba(255,255,255,.07);color:#fff}
+
+/* ============ PRIVY AUTH DIALOG ============ */
+.auth-overlay{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:18px}
+.auth-overlay.show{display:flex}
+.auth-backdrop{position:absolute;inset:0;background-color:#141126;background-position:center;background-size:cover;background-repeat:no-repeat;filter:brightness(.42) saturate(.75) hue-rotate(18deg)}
+.auth-backdrop::after{content:"";position:absolute;inset:0;background:rgba(10,8,24,.45)}
+.auth-stack{position:relative;display:flex;flex-direction:column;align-items:center;gap:22px;width:min(430px,100%)}
+.auth-card{width:100%;background:rgba(23,20,34,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.10);border-radius:22px;color:#f2f0fa;padding:20px 22px 22px;box-shadow:0 40px 80px rgba(2,0,16,.55)}
+.auth-top{display:flex;align-items:center;gap:8px;font-size:14.5px}
+.auth-top b{font-weight:800}
+.auth-top .mode{color:#a49fc0;font-weight:500}
+.auth-top .step{margin-left:auto;color:#a49fc0;font-size:13px}
+.auth-close{width:32px;height:32px;min-height:32px;border-radius:50%;border:0;background:rgba(255,255,255,.10);color:#e8e6f5;display:grid;place-items:center;font-size:13px;margin-left:8px}
+.auth-close:hover{background:rgba(255,255,255,.2)}
+.auth-card h2{margin:20px 0 8px;font-size:25px;letter-spacing:-.01em}
+.auth-card .sub{margin:0;color:#b3afd0;font-size:14.5px;line-height:1.5}
+.auth-alert{display:none;margin-top:14px;background:rgba(255,178,36,.12);border:1px solid rgba(255,178,36,.45);color:#ffd98a;border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.5}
+.auth-alert.show{display:block}
+.auth-alert.err{background:rgba(255,107,107,.12);border-color:rgba(255,107,107,.45);color:#ffb3b3}
+.auth-field{margin-top:18px}
+.auth-field label{display:block;font-size:13px;color:#a49fc0;margin-bottom:7px;font-weight:600}
+.auth-field input{width:100%;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.10);border-radius:12px;color:#fff;font:inherit;font-size:15.5px;padding:13px 14px;outline:0;min-height:48px}
+.auth-field input:focus{border-color:rgba(255,255,255,.45);background:rgba(255,255,255,.12)}
+.auth-field input::placeholder{color:#7d7a99}
+.remember{display:flex;align-items:center;gap:12px;margin-top:18px}
+.remember .r-text{flex:1}
+.remember .r-text b{display:block;font-size:15.5px;font-weight:600}
+.remember .r-text span{color:#a49fc0;font-size:13.5px}
+.switch{flex:none;width:52px;height:30px;min-height:30px;border-radius:999px;border:0;background:rgba(255,255,255,.22);position:relative;transition:.25s;padding:0}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.25s}
+.switch[aria-checked="true"]{background:#fff}
+.switch[aria-checked="true"]::after{left:25px;background:#14121f}
+.auth-or{display:flex;align-items:center;gap:14px;margin:20px 0 14px;color:#8b87a6;font-size:13px}
+.auth-or::before,.auth-or::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.12)}
+.auth-alt{display:grid;gap:9px}
+.auth-alt button{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.06);color:#fff;font-size:15px;font-weight:600;border-radius:12px;padding:12px;min-height:48px}
+.auth-alt button:hover{background:rgba(255,255,255,.16)}
+.auth-alt button svg{width:19px;height:19px;flex:none}
+.auth-alt button:disabled,.auth-primary:disabled{opacity:.55;cursor:wait}
+.auth-fine{margin:16px 0 0;color:#8b87a6;font-size:12.5px;line-height:1.55}
+.auth-primary{width:100%;margin-top:16px;background:#fff;color:#14121f;border:0;font-weight:700;font-size:15.5px;border-radius:999px;padding:14px;min-height:50px}
+.auth-primary:hover{background:#e9e7f5}
+.auth-backlink{margin-top:12px;background:transparent;border:0;color:#b3afd0;font-size:13.5px;font-weight:600;width:100%;padding:6px}
+.auth-backlink:hover{color:#fff}
+
+/* ============ MENU VIEWS ============ */
+.view-scrim{position:fixed;inset:0;z-index:50;background:rgba(5,10,24,.45);opacity:0;pointer-events:none;transition:opacity .3s ease}
+.view-scrim.show{opacity:1;pointer-events:auto}
+.view-panel{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%);z-index:55;width:min(720px,calc(100vw - 24px));max-height:calc(100dvh - 36px);overflow-y:auto;background:var(--glass-2);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--glass-line);border-radius:20px;color:#eaf4ff;box-shadow:0 34px 70px rgba(4,32,64,.5), inset 0 1px 0 rgba(255,255,255,.10);padding:20px 20px 22px;opacity:0;pointer-events:none;transition:opacity .3s ease,transform .3s cubic-bezier(.22,.8,.32,1)}
+.view-panel.show{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+@media (prefers-reduced-motion: reduce){.view-panel,.view-scrim{transition:none}}
+.view-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:6px}
+.view-head h2{margin:0;font-size:22px;letter-spacing:-.01em;color:#fff}
+.view-head p{margin:5px 0 0;color:#9db9d2;font-size:13.5px;line-height:1.5}
+.view-close{margin-left:auto;flex:none;width:36px;height:36px;min-height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;font-size:14px;display:grid;place-items:center}
+.view-close:hover{background:rgba(255,255,255,.18)}
+.view-section{animation:crumbleRiseSoft .45s cubic-bezier(.22,.8,.32,1) both}
+.view-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:14px 16px;margin-top:12px}
+.view-card h3{margin:0 0 4px;font-size:15.5px;color:#fff}
+.view-card p{margin:0;color:#b9d2e8;font-size:13.5px;line-height:1.55}
+.view-row{display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid rgba(255,255,255,.08)}
+.view-row:last-child{border-bottom:0}
+.view-row .grow{flex:1;min-width:0}
+.view-row .grow b{display:block;color:#fff;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.view-row .grow span{color:#9db9d2;font-size:12.5px}
+.view-row .amt{text-align:right;flex:none}
+.view-row .amt b{display:block;color:#fff;font-size:14.5px}
+.view-row .amt span{font-size:12.5px}
+.up{color:var(--green)} .down{color:var(--red)}
+.coin-badge{flex:none;width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.12);color:#fff;display:grid;place-items:center;font-weight:800;font-size:12px}
+.view-total{display:flex;align-items:baseline;gap:10px;margin-top:14px;flex-wrap:wrap}
+.view-total b{font-size:30px;color:#fff;letter-spacing:-.02em}
+.view-total span{color:#9db9d2;font-size:13px}
+.view-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.view-actions button{border-radius:999px;padding:9px 16px;font-weight:700;font-size:13.5px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff}
+.view-actions button.primary{background:#fff;color:#0a2540;border-color:#fff}
+.view-actions button:hover{background:rgba(255,255,255,.14)}
+.view-actions button.primary:hover{background:#eaf4ff}
+.view-note{margin-top:12px;color:#9db9d2;font-size:12.5px;line-height:1.55}
+.view-status{font-size:11px;font-weight:800;letter-spacing:.05em;padding:4px 9px;border-radius:999px;background:rgba(43,217,124,.16);color:var(--green);flex:none}
+.view-status.paused{background:rgba(255,178,36,.16);color:var(--amber)}
+.view-search{width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:12px;color:#fff;font:inherit;font-size:14.5px;padding:11px 14px;outline:0;margin-top:12px;min-height:44px}
+.view-search:focus{border-color:rgba(255,255,255,.45)}
+.view-search::placeholder{color:#7e9cb8}
+.ttable.full td,.ttable.full th{padding-top:7px;padding-bottom:7px}
+.kv{display:flex;justify-content:space-between;gap:14px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:13.5px}
+.kv:last-child{border-bottom:0}
+.kv span{color:#9db9d2} .kv b{color:#fff;text-align:right;word-break:break-all}
+.wallet-addr{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:#cfe4f7;word-break:break-all}
+.view-msg{display:none;margin-top:12px;background:rgba(43,217,124,.12);border:1px solid rgba(43,217,124,.4);color:#b9f4d4;border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.5}
+.view-msg.show{display:block}
+.perm-list{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:7px;font-size:13.5px;color:#dcecfb}
+.perm-list li{display:flex;gap:9px}
+.perm-list li::before{content:"✓";color:var(--green);font-weight:800}
+
+/* ============ DEMO SLOT ============ */
+.demo-slot{position:absolute;z-index:3;width:230px;height:148px;border:1.5px dashed rgba(255,255,255,.9);border-radius:10px;pointer-events:none;transition:left 1.4s cubic-bezier(.22,.8,.32,1),top 1.4s cubic-bezier(.22,.8,.32,1),width 1.4s cubic-bezier(.22,.8,.32,1),height 1.4s cubic-bezier(.22,.8,.32,1);box-shadow:0 0 0 1px rgba(10,40,80,.08), inset 0 0 24px rgba(255,255,255,.06)}
+.demo-slot .handle{position:absolute;width:11px;height:11px;background:#fff;border:1px solid rgba(10,37,64,.35);border-radius:2px;box-shadow:0 2px 6px rgba(4,32,64,.35)}
+.demo-slot .handle.tl{left:-6px;top:-6px}
+.demo-slot .handle.tr{right:-6px;top:-6px}
+.demo-slot .handle.bl{left:-6px;bottom:-6px}
+.demo-slot .handle.br{right:-6px;bottom:-6px}
+@media (prefers-reduced-motion: reduce){.demo-slot{transition:none}}
+
+/* ============ LIGHT MODE ============ */
+body.light-mode .os{color:#0a2540}
+body.light-mode .topbar{color:#0a2540}
+body.light-mode .topbar .navbtn{color:rgba(10,37,64,.78)}
+body.light-mode .topbar .navbtn:hover,body.light-mode .topbar .navbtn.active{background:rgba(255,255,255,.55);color:#0a2540;border-color:rgba(10,37,64,.10)}
+body.light-mode .btn-login{color:#0a2540;text-shadow:none}
+body.light-mode .btn-login:hover{background:rgba(255,255,255,.55);color:#0a2540}
+body.light-mode .btn-signup{background:#0a2540;color:#fff;border-radius:999px;padding:9px 18px;box-shadow:0 8px 20px rgba(10,37,64,.28)}
+body.light-mode .btn-signup:hover{background:#12283f;color:#fff}
+body.light-mode .dock button{color:rgba(10,37,64,.75)}
+body.light-mode .dock button:hover{background:rgba(255,255,255,.5);color:#0a2540}
+body.light-mode .dock button.active{background:rgba(255,255,255,.68);border-color:rgba(10,37,64,.10);color:#0a2540}
+body.light-mode .hero h1{color:#0a2540;text-shadow:0 2px 22px rgba(255,255,255,.55)}
+body.light-mode .hero p{color:rgba(10,37,64,.88);text-shadow:0 1px 12px rgba(255,255,255,.6)}
+body.light-mode .win{background:rgba(255,255,255,.78);border-color:rgba(10,37,64,.10);color:#17334f;box-shadow:0 24px 50px rgba(30,70,120,.22), inset 0 1px 0 rgba(255,255,255,.8)}
+body.light-mode .win-head .wsub,body.light-mode .win-head .wagent{color:#5b7692}
+body.light-mode .ttable td{color:#33506e} body.light-mode .ttable td.coin{color:#0a2540}
+body.light-mode .ttable th{color:#6d8aa6}
+body.light-mode .ttable tr.faded td{color:#8aa2b8} body.light-mode .ttable tr.faded td.coin{color:#5b7692}
+body.light-mode .checks li{color:#7d97ad} body.light-mode .checks li.done{color:#17334f}
+body.light-mode .checks .verdict{color:#5b7692}
+body.light-mode .win-foot{color:#33506e}
+body.light-mode .askbar{background:rgba(255,255,255,.84);border-color:rgba(10,37,64,.10);color:#0a2540;box-shadow:0 30px 60px rgba(30,70,120,.22)}
+body.light-mode .ask-input{color:#0a2540} body.light-mode .ask-input::placeholder{color:#6d8aa6}
+body.light-mode .icon-btn,body.light-mode .wallet-btn{border-color:rgba(10,37,64,.30);color:#0a2540}
+body.light-mode .icon-btn:hover,body.light-mode .wallet-btn:hover{background:rgba(10,37,64,.06)}
+body.light-mode .stepper{border-color:rgba(10,37,64,.30)} body.light-mode .stepper button{color:#0a2540}
+body.light-mode .mic-ghost{color:#33506e}
+body.light-mode .voice-btn{background:#0a2540;color:#fff}
+body.light-mode .send-btn{background:#0a2540;color:#fff}
+body.light-mode .locpicker{background:rgba(255,255,255,.82);border-color:rgba(10,37,64,.10);color:#0a2540}
+body.light-mode .loc-head span{color:#5b7692} body.light-mode .loc-head button{color:#33506e}
+body.light-mode .loc-foot{color:#0a2540} body.light-mode .loc-foot button{background:#0a2540;color:#fff}
+body.light-mode .loc-thumb.sel{border-color:#0a2540}
+body.light-mode .bottombar{color:rgba(10,37,64,.75)}
+body.light-mode .bottombar .modes button{color:rgba(10,37,64,.60)} body.light-mode .bottombar .modes button.active{color:#0a2540}
+body.light-mode .ext-btn,body.light-mode .reopen-loc{background:rgba(255,255,255,.72);border-color:rgba(10,37,64,.14);color:#0a2540}
+body.light-mode .demo-slot{border-color:rgba(10,37,64,.55)}
+body.light-mode .account-chip{background:rgba(255,255,255,.72);border-color:rgba(10,37,64,.16);color:#0a2540}
+body.light-mode .sidebar{background:rgba(255,255,255,.94);border-color:rgba(10,37,64,.10);color:#0a2540;box-shadow:0 30px 70px rgba(30,70,120,.28)}
+body.light-mode .side-item{color:#17334f} body.light-mode .side-item svg{color:#5b7692}
+body.light-mode .side-item:hover,body.light-mode .side-item.active{background:rgba(10,37,64,.07);color:#0a2540}
+body.light-mode .side-search{background:rgba(10,37,64,.05);border-color:rgba(10,37,64,.08);color:#5b7692}
+body.light-mode .side-search input{color:#0a2540} body.light-mode .side-search input::placeholder{color:#7d97ad}
+body.light-mode .side-compose,body.light-mode .side-docs,body.light-mode .side-x,body.light-mode .side-foot-icon,body.light-mode .side-loc-btn,body.light-mode .side-theme-btn{color:#17334f}
+body.light-mode .side-docs svg,body.light-mode .side-loc-btn svg,body.light-mode .side-theme-btn svg{color:#5b7692}
+body.light-mode .side-foot{border-top-color:rgba(10,37,64,.10)}
+body.light-mode .view-panel{background:rgba(255,255,255,.92);border-color:rgba(10,37,64,.10);color:#17334f}
+body.light-mode .view-head h2,body.light-mode .view-card h3,body.light-mode .view-row .grow b,body.light-mode .view-row .amt b,body.light-mode .view-total b,body.light-mode .kv b{color:#0a2540}
+body.light-mode .view-head p,body.light-mode .view-card p,body.light-mode .view-note,body.light-mode .kv span,body.light-mode .view-row .grow span{color:#5b7692}
+body.light-mode .view-card{background:rgba(10,37,64,.04);border-color:rgba(10,37,64,.08)}
+body.light-mode .view-actions button{border-color:rgba(10,37,64,.28);color:#0a2540}
+body.light-mode .view-actions button.primary{background:#0a2540;color:#fff;border-color:#0a2540}
+body.light-mode .view-search{background:rgba(10,37,64,.05);border-color:rgba(10,37,64,.14);color:#0a2540}
+body.light-mode .wallet-addr{color:#33506e}
+@media (max-width:900px){
+  body.light-mode #sidebarToggle{background:rgba(255,255,255,.55);border-color:rgba(10,37,64,.12);color:#0a2540}
+  body.light-mode .btn-signup{background:#0a2540;color:#fff;box-shadow:0 8px 20px rgba(10,37,64,.28);text-shadow:none}
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width:1180px){
+  #win-terminal{left:1.8%} #win-browser{right:1.8%} #win-chart{left:1.8%}
+  .win{width:264px}
+  .center-stack{width:min(520px, calc(100% - 40px))}
+}
+@media (max-width:900px){
+  body{overflow:auto}
+  .os{height:auto;min-height:100dvh;overflow:visible}
+  .canvas{display:flex;flex-direction:column;gap:16px;padding:10px 0 30px;overflow:visible}
+  .topbar{padding:12px 16px 2px}
+  .topbar .brand-logo{display:none}
+  .topbar .navbtn:not(#sidebarToggle){display:none}
+  #sidebarToggle{width:46px;height:46px;min-height:46px;border-radius:50%;background:rgba(255,255,255,.20);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff}
+  #sidebarToggle svg{width:20px;height:20px}
+  .btn-login{font-size:15px;text-shadow:0 1px 10px rgba(10,50,100,.4)}
+  .btn-signup{background:transparent;color:#fff;box-shadow:none;font-size:15px;font-weight:600;padding:8px 10px;text-shadow:0 1px 10px rgba(10,50,100,.4)}
+  .btn-signup:hover{background:rgba(255,255,255,.16);color:#fff}
+  .hero{position:relative;left:auto;top:auto;transform:none;width:100%;max-width:100%;min-width:0;box-sizing:border-box;padding:18px 26px 2px}
+  .hero-logo{width:56px;height:59px}
+  .hero h1{font-size:41px;margin-top:14px}
+  .hero p{font-size:16.5px;margin-top:14px}
+  .win-track{position:relative;inset:auto;z-index:2;display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:8px 7.5vw 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch;width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+  .win-track::-webkit-scrollbar{display:none}
+  .win-track .win{position:relative;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;flex:0 0 85%;width:85%;max-width:360px;margin:0;scroll-snap-align:center}
+  .carousel-dots{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:-8px;position:relative;z-index:3}
+  .carousel-dots button{width:24px;height:24px;min-height:24px;padding:0;border:0;border-radius:999px;background:transparent;display:grid;place-items:center}
+  .carousel-dots button::after{content:"";width:7px;height:7px;border-radius:999px;background:rgba(255,255,255,.45);transition:width .3s,background .3s}
+  .carousel-dots button.active::after{width:24px;background:#fff}
+  .center-stack{position:relative;left:auto;top:auto;transform:none;width:100%;max-width:520px;min-width:0;box-sizing:border-box;margin:0 auto;padding:0 14px}
+  .ask-input{text-align:left}
+  .dock{display:none}
+  .demo-slot{display:none}
+  .ext-btn,.reopen-loc{display:none!important}
+  .bottombar{display:none}
+  .auth-overlay{align-items:flex-end;padding:0}
+  .auth-stack{gap:14px;width:100%}
+  .auth-stack .auth-logo-img{display:none}
+  .auth-card{border-radius:22px 22px 0 0;border-bottom:0}
+}
+@media (max-width:560px){
+  .loc-grid{grid-template-columns:repeat(4,1fr)}
+  .loc-thumb{height:46px}
+  .ask-input{font-size:15.5px}
+  .account-chip .who{max-width:120px}
+  /* keep the full Terminal table's call column on screen at phone width */
+  .ttable.full{font-size:11px}
+  .ttable.full th,.ttable.full td{padding-left:5px;padding-right:5px}
+  .ttable.full th:first-child,.ttable.full td:first-child{padding-left:12px}
+  .ttable.full th:last-child,.ttable.full td:last-child{padding-right:12px}
+}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- ================= DESK ================= -->
+<div class="os intro-pre" id="os">
+  <div class="sky-layer" id="skyLayer" style="background-image:url(assets/sky.jpg)"></div>
+  <div class="sky-shade" id="skyShade"></div>
+
+  <div class="topbar">
+    <img class="brand-logo" src="assets/logo.png" alt="Crumble logo" />
+    <button class="navbtn" id="navBack" aria-label="Back">‹</button>
+    <button class="navbtn" id="navForward" aria-label="Forward">›</button>
+    <button class="navbtn" id="sidebarToggle" aria-label="Hide or show sidebar" aria-expanded="false" aria-controls="sidebar" title="Hide / Show sidebar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+    </button>
+    <button class="navbtn" id="navNewTask" aria-label="New Task" title="New Task">+</button>
+    <div class="spacer"></div>
+    <div class="auth-area" id="authArea">
+      <button class="btn-login" id="btnLogin">Log In</button>
+      <button class="btn-signup" id="btnSignup">Sign Up</button>
+    </div>
+    <div class="account-wrap" id="accountWrap" hidden>
+      <button class="account-chip" id="accountChip" aria-haspopup="true" aria-expanded="false">
+        <span class="avatar" id="accountAvatar">K</span>
+        <span class="who" id="accountWho"></span>
+        <span aria-hidden="true">▾</span>
+      </button>
+      <div class="account-menu" id="accountMenu" role="menu" hidden>
+        <div class="am-id"><b>Signed in via Privy</b><span id="accountMenuId"></span></div>
+        <button role="menuitem" id="btnLogout">Log Out</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="os-body">
+    <nav class="dock" aria-label="Crumble tools" id="dock">
+      <img class="dock-logo" src="assets/logo.png" alt="Crumble logo" />
+      <button data-dock="Desk" aria-label="Desk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7z" /><circle cx="12" cy="11" r="2.4" /></svg></button>
+      <button data-dock="Desks" class="active" aria-label="Desks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="13" height="13" rx="3" /><path d="M8 21h13V8" /></svg></button>
+      <button data-dock="Terminal" aria-label="Terminal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="3" /><path d="M7 9l3 3-3 3M12.5 15H17" /></svg></button>
+      <button data-dock="Wallet" aria-label="Wallet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="13" rx="3" /><path d="M16.5 12.5h.01M3 10h18" /></svg></button>
+      <button data-dock="Activity" aria-label="Activity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></svg></button>
+      <button data-dock="Signals" aria-label="Signals"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10v4M8.5 7v10M13 4v16M17.5 8v8M21 11v2" /></svg></button>
+      <button data-dock="History" aria-label="History"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4.5 9a8.5 8.5 0 1 1-1 6" /><path d="M4 4v5h5M12 8v4.5l3 1.8" /></svg></button>
+      <div class="grow"></div>
+      <button data-dock="Extensions" aria-label="Extensions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3.5a2.5 2.5 0 0 1 5 0V6h3.5A2.5 2.5 0 0 1 20 8.5c0 1.2-.8 2.1-2 2.4V18a2 2 0 0 1-2 2h-3v-2.5A2.5 2.5 0 1 0 10.5 15H8a2 2 0 0 1-2-2v-2.5A2.5 2.5 0 1 1 8.5 6H9z" /></svg></button>
+    </nav>
+
+    <div class="canvas" id="canvas">
+      <div class="demo-slot" id="demoSlot" aria-hidden="true">
+        <span class="handle tl"></span><span class="handle tr"></span><span class="handle bl"></span><span class="handle br"></span>
+      </div>
+
+      <header class="hero">
+        <img class="hero-logo" src="assets/logo.png" alt="Crumble logo" />
+        <h1>Hello, my name is Crumble.</h1>
+        <p>Hold, send and swap on Robinhood, and ask for things in plain words. Crumble only spends inside limits you set.</p>
+      </header>
+
+      <div class="win-track" id="winTrack">
+        <!-- TERMINAL — build-time snapshot -->
+        <article class="win" id="win-terminal">
+          <div class="win-head">
+            <span class="wtitle">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10v4M8.5 7v10M13 4v16M17.5 8v8" /></svg>
+              Terminal
+            </span>
+            <span class="wsub">Pons · Robinhood Chain</span>
+            <span class="live-pill stale"><i></i>SNAPSHOT</span>
+            <span class="wagent">Crumble 1</span>
+          </div>
+          <table class="ttable" aria-label="Pons coins on Robinhood Chain — snapshot">
+            <thead><tr><th>coin</th><th>vol 1h</th><th>mc</th><th>1h %</th><th>dev</th><th style="text-align:right">call</th></tr></thead>
+            <tbody id="deskTermBody"></tbody>
+          </table>
+          <div class="win-foot">
+            <span class="spin" id="footSpin-terminal"></span>
+            <span id="footText-terminal">Filtering today's coins</span>
+          </div>
+        </article>
+
+        <!-- BROWSER -->
+        <article class="win" id="win-browser">
+          <div class="win-head">
+            <span class="wtitle">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.8-3.8" /></svg>
+              Browser
+            </span>
+            <span class="wsub">the dev's wallet</span>
+            <span class="wagent">Crumble 2</span>
+          </div>
+          <ul class="checks" id="checksList">
+            <li data-check><span class="mark">✓</span>The dev still holds his coins</li>
+            <li data-check><span class="mark">✓</span>No bundled buys at launch</li>
+            <li data-check><span class="mark">✓</span>Early buyers are still in</li>
+            <li data-check class="warn"><span class="mark">⚠</span>One earlier coin of his died</li>
+            <li class="verdict" id="verdictLine">Mostly clean. One flag to weigh.</li>
+          </ul>
+          <div class="win-foot">
+            <span class="spin" id="footSpin-browser"></span>
+            <span id="footText-browser">Checking the dev's wallet</span>
+          </div>
+        </article>
+
+        <!-- CHART -->
+        <article class="win" id="win-chart">
+          <div class="win-head">
+            <span class="wtitle">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5M4 19h16" /><path d="M7 15l4-5 3 3 5-7" /></svg>
+              Chart
+            </span>
+            <span class="wsub">KIPLO, 5 minutes</span>
+            <span class="wagent">Crumble 3</span>
+          </div>
+          <div class="chartbox">
+            <svg viewBox="0 0 280 104" preserveAspectRatio="none" aria-label="KIPLO 5-minute price chart">
+              <defs>
+                <linearGradient id="lg" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0" stop-color="#2ee6a8" /><stop offset=".45" stop-color="#8ab6ff" />
+                  <stop offset=".75" stop-color="#e58aff" /><stop offset="1" stop-color="#ffb35c" />
+                </linearGradient>
+                <linearGradient id="lfill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#8ab6ff" stop-opacity=".28" /><stop offset="1" stop-color="#8ab6ff" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+              <path d="M4,62 C26,74 34,50 52,54 C70,58 76,84 96,82 C116,80 122,58 142,56 C162,54 170,30 196,26 C222,22 238,44 276,40 L276,104 L4,104 Z" fill="url(#lfill)" />
+              <path class="chart-line" d="M4,62 C26,74 34,50 52,54 C70,58 76,84 96,82 C116,80 122,58 142,56 C162,54 170,30 196,26 C222,22 238,44 276,40" fill="none" stroke="url(#lg)" stroke-width="2.4" stroke-linecap="round" />
+              <circle cx="276" cy="40" r="3.4" fill="#fff" />
+            </svg>
+          </div>
+          <div class="win-foot">
+            <span class="spin" id="footSpin-chart"></span>
+            <span id="footText-chart">Watching the chart for a retest</span>
+          </div>
+        </article>
+      </div>
+
+      <div class="carousel-dots" role="tablist" aria-label="Desk windows" id="carouselDots">
+        <button type="button" class="active" aria-label="Show Terminal window"></button>
+        <button type="button" aria-label="Show Browser window"></button>
+        <button type="button" aria-label="Show Chart window"></button>
+      </div>
+
+      <!-- CENTER: ASK + RESULT + LOCATION -->
+      <div class="center-stack" id="centerStack">
+        <div class="askbar">
+          <form id="askForm">
+            <input class="ask-input" id="askInput" type="text" autocomplete="off" placeholder="Ask Crumble anything on chain" aria-label="Ask Crumble anything on chain" />
+            <div class="ask-row">
+              <button type="button" class="icon-btn" id="attachBtn" aria-label="Attach context">+</button>
+              <button type="button" class="wallet-btn" id="walletCycleBtn" aria-label="Choose wallet">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="3" /><path d="M16.5 12.5h.01" /></svg>
+                <span id="walletCycleLabel">No wallet</span> <span aria-hidden="true">▾</span>
+              </button>
+              <div class="right">
+                <span class="stepper" aria-label="Number of Crumble agents">
+                  <b id="agentCount">3</b>
+                  <button type="button" id="stepDown" aria-label="Fewer agents">−</button>
+                  <button type="button" id="stepUp" aria-label="More agents">+</button>
+                </span>
+                <button type="submit" class="send-btn" id="sendBtn" hidden>Run →</button>
+                <button type="button" class="mic-ghost" id="micBtn" aria-label="Dictate">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" /></svg>
+                </button>
+                <button type="button" class="voice-btn" id="voiceBtn" aria-label="Voice mode">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="9" width="2.6" height="6" rx="1.3" /><rect x="8.2" y="6" width="2.6" height="12" rx="1.3" /><rect x="12.4" y="8" width="2.6" height="8" rx="1.3" /><rect x="16.6" y="5" width="2.6" height="14" rx="1.3" /></svg>
+                </button>
+              </div>
+            </div>
+            <span class="sr-only" role="status" id="runStatus"></span>
+          </form>
+        </div>
+
+        <p class="ai-note">Ask Crumble answers live with Gemini through <code>/api/ask</code>, using live Pons pool data as context. Setup on Vercel: add <code>GEMINI_API_KEY</code> as an Environment Variable in the project dashboard (Settings → Environment Variables), then redeploy — the key lives only in that variable, never in this page's code.</p>
+
+        <div class="result-card" id="resultCard" role="status">
+          <div class="r-head">
+            <span class="pill src" id="resultPill">ANSWER</span>
+            <h3 id="resultTitle">Crumble's answer</h3>
+            <span class="pill src" id="resultSrc">Live · Gemini</span>
+          </div>
+          <p id="resultBody"></p>
+          <div class="r-actions" id="resultActions" hidden>
+            <button class="btn-primary" id="prepTxBtn">Prepare transaction</button>
+            <button class="btn-ghost" id="justWatchBtn">Just watch it</button>
+          </div>
+        </div>
+
+        <div class="result-card error" id="askErrorCard" role="alert">
+          <div class="r-head">
+            <span class="pill err">AI OFFLINE</span>
+            <h3 id="askErrorTitle">Crumble couldn't answer that</h3>
+          </div>
+          <p id="askErrorBody"></p>
+          <p class="ask-err-note">No verdict was made up in its place. The ask box answers through <code>/api/ask</code> (a Vercel serverless function in this deploy). If you just deployed, check that <code>GEMINI_API_KEY</code> is set as an Environment Variable in the Vercel dashboard (Project → Settings → Environment Variables) and that the site was redeployed after adding it.</p>
+        </div>
+
+        <div class="locpicker" id="locPicker">
+          <div class="loc-head">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-5.6-7-11a7 7 0 1 1 14 0c0 5.4-7 11-7 11z" /><circle cx="12" cy="10" r="2.6" /></svg>
+            <b>Location</b><span>Pick your location</span>
+            <button type="button" id="locClose" aria-label="Close location picker">✕</button>
+          </div>
+          <div class="loc-grid" id="locGrid"></div>
+          <div class="loc-foot">
+            <span id="locName">Bright day</span>
+            <button type="button" id="locDone">Done</button>
+          </div>
+        </div>
+        <button class="reopen-loc" id="reopenLoc" style="position:static" hidden>◎ Change sky</button>
+      </div>
+
+      <button class="ext-btn" id="extBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v11M7.5 11L12 15.5 16.5 11M5 20h14" /></svg>
+        Extension
+      </button>
+    </div>
+  </div>
+
+  <div class="bottombar">
+    <span aria-hidden="true">▣</span>
+    <span id="statusIdentity">Not signed in</span>
+    <div class="modes">
+      <button id="modeDesk" class="active">▦ Desk</button>
+      <button id="modeTerminal">⌁ Terminal</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= SIDEBAR ================= -->
+<div class="side-scrim" id="sideScrim"></div>
+<aside class="sidebar" id="sidebar" aria-label="Crumble menu" aria-hidden="true" style="width:260px">
+  <div class="side-top">
+    <img class="side-logo" src="assets/logo.png" alt="Crumble logo" />
+    <button class="side-compose" id="sideCompose" aria-label="New task">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+    </button>
+  </div>
+  <label class="side-search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.8-3.8" /></svg>
+    <input type="search" id="sideSearch" placeholder="Search tasks, coins, wallets" aria-label="Search tasks, coins, wallets" autocomplete="off" />
+  </label>
+  <nav class="side-menu" id="sideMenu" aria-label="Main menu"></nav>
+  <div class="side-foot">
+    <div class="side-foot-left">
+      <button class="side-docs" id="sideDocs">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z" /><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3" /></svg>
+        Docs
+      </button>
+      <button class="side-foot-icon" id="sideExt" aria-label="Extension" title="Extension">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 4v10.5M7.5 10.5L12 15l4.5-4.5M4.5 19.5h15" /></svg>
+      </button>
+      <a class="side-x" href="https://x.com/usecrumblelive" target="_blank" rel="noopener" aria-label="Crumble on X" title="Crumble on X">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.9 2.6h3l-6.6 7.6 7.8 10.3h-6.1l-4.8-6.3-5.5 6.3h-3l7.1-8.1L3.3 2.6h6.3l4.3 5.7zm-1.1 16h1.7L8.6 4.4H6.8z" /></svg>
+      </a>
+    </div>
+    <div class="side-foot-right">
+      <button class="side-loc-btn" type="button" id="sideLocBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-5.6-7-11a7 7 0 1 1 14 0c0 5.4-7 11-7 11z" /><circle cx="12" cy="10" r="2.6" /></svg>
+        Location
+      </button>
+      <button class="side-theme-btn" type="button" id="sideThemeBtn" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
+        <span id="sideThemeLabel">Switch to Light</span>
+      </button>
+    </div>
+  </div>
+  <div class="side-resize" id="sideResize" aria-hidden="true" title="Drag to resize sidebar"></div>
+</aside>
+
+<!-- ================= PRIVY AUTH DIALOG ================= -->
+<div class="auth-overlay" id="authOverlay" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+  <div class="auth-backdrop" id="authBackdrop" style="background-image:url(assets/sky.jpg)"></div>
+  <div class="auth-stack">
+    <img class="auth-logo-img" src="assets/logo.png" alt="Crumble logo" />
+    <div class="auth-card">
+      <div class="auth-top">
+        <img class="mark-img" src="assets/logo.png" alt="" aria-hidden="true" />
+        <b>Crumble</b><span class="mode" id="authModeLabel">Sign up</span>
+        <span class="step" id="authStepLabel">1 of 2</span>
+        <button class="auth-close" id="authClose" aria-label="Close">✕</button>
+      </div>
+
+      <div class="auth-alert" id="authAlert" role="alert"></div>
+
+      <div id="authStep1">
+        <h2 id="authTitle">Create an Account</h2>
+        <p class="sub">Enter your email. We'll send you a code to sign in.</p>
+        <form id="authEmailForm">
+          <div class="auth-field">
+            <label for="authEmail">Email</label>
+            <input id="authEmail" type="email" autocomplete="email" placeholder="you@email.com" />
+          </div>
+          <div class="remember">
+            <div class="r-text"><b>Remember This Device</b><span>Stay signed in here after closing the tab.</span></div>
+            <button type="button" class="switch" id="rememberSwitch" role="switch" aria-checked="true" aria-label="Remember this device"></button>
+          </div>
+          <button class="auth-primary" type="submit" id="authSendBtn">Send Code</button>
+        </form>
+        <div class="auth-or">or</div>
+        <div class="auth-alt">
+          <button type="button" id="oauthGithub">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" /></svg>
+            Continue with GitHub
+          </button>
+          <button type="button" id="oauthGoogle">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.27c0-.85-.08-1.66-.22-2.45H12v4.64h6.45a5.52 5.52 0 0 1-2.39 3.58v2.97h3.87c2.26-2.09 3.57-5.16 3.57-8.74Z" /><path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.94-2.91l-3.87-2.97c-1.07.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.96H1.29v3.07A12 12 0 0 0 12 24Z" /><path fill="#FBBC05" d="M5.27 14.31A7.2 7.2 0 0 1 4.89 12c0-.8.14-1.58.38-2.31V6.62H1.29a12 12 0 0 0 0 10.76Z" /><path fill="#EA4335" d="M12 4.73c1.76 0 3.35.61 4.6 1.8l3.44-3.44A11.98 11.98 0 0 0 12 0 12 12 0 0 0 1.29 6.62l3.98 3.07C6.22 6.84 8.87 4.73 12 4.73Z" /></svg>
+            Continue with Google
+          </button>
+          <button type="button" id="walletLoginBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3" /><path d="M16.5 12.5h.01M3 10h18" /></svg>
+            Connect Wallet
+          </button>
+        </div>
+        <p class="auth-fine">No password. New here? The code, or your verified GitHub email, makes your account. By continuing you agree to the Terms.</p>
+      </div>
+
+      <div id="authStep2" hidden>
+        <h2>Enter your code</h2>
+        <p class="sub">We sent a 6-digit code to <span id="authCodeEmail">your email</span>.</p>
+        <form id="authCodeForm">
+          <div class="auth-field">
+            <label for="authCode">Code</label>
+            <input id="authCode" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="••••••" maxlength="8" />
+          </div>
+          <button class="auth-primary" type="submit" id="authVerifyBtn">Verify Code</button>
+        </form>
+        <button class="auth-backlink" type="button" id="authBackLink">← Use a different email</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MENU VIEWS ================= -->
+<div class="view-scrim" id="viewScrim"></div>
+<section class="view-panel" id="viewPanel" role="dialog" aria-modal="false" aria-labelledby="viewTitle" hidden>
+  <div class="view-head">
+    <div>
+      <h2 id="viewTitle"></h2>
+      <p id="viewSub"></p>
+    </div>
+    <button class="view-close" id="viewClose" aria-label="Close view">✕</button>
+  </div>
+  <div id="viewBody"></div>
+</section>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+"use strict";
+/* ================= baked-in data ================= */
+/* Terminal snapshot: fetched ONCE at build time from GeckoTerminal
+   (https://api.geckoterminal.com/api/v2/networks/robinhood/new_pools +
+   trending_pools), filtered to Pons pools (pons-v2) and Pons graduations
+   on Uniswap v4, sorted by 1h volume. This static page never refetches. */
+var SNAPSHOT = {"takenAt":"2026-11-19T09:05:33Z","rows":[{"coin":"MOW","poolName":"MOW / WETH","dex":"uniswap-v4-robinhood","vol1h":538164.214010989,"mc":195682922.2,"priceChangeH1":1.998,"call":"WATCH","poolAddress":"0x5291cfd042d8a771a510534ee31090bc4f4dc72724871e8f321aecfd12332a9a","createdAt":"2026-10-02T15:57:10Z"},{"coin":"DCTY","poolName":"DCTY / WETH 1%","dex":"uniswap-v4-robinhood","vol1h":43302.3093926633,"mc":133151.4129,"priceChangeH1":438.795,"call":"WATCH","poolAddress":"0xf2327221406f924875b4ae9c96e1f92f4c4acf3b7f4a6b4e49ebb05b91aa8f2c","createdAt":"2026-11-19T08:48:10Z"},{"coin":"DCTY","poolName":"DCTY / WETH 1%","dex":"uniswap-v4-robinhood","vol1h":35388.3602995467,"mc":108224.7826,"priceChangeH1":316.499,"call":"WATCH","poolAddress":"0xa31d75bfe01856daa117c837f6168c8d10b0f4ad66ef4ade0b83d86c2574547e","createdAt":"2026-11-19T08:38:15Z"},{"coin":"DCTY","poolName":"DCTY / WETH 1%","dex":"uniswap-v4-robinhood","vol1h":32617.6301673771,"mc":103530.3779,"priceChangeH1":318.856,"call":"WATCH","poolAddress":"0x808c15a827f7747a05eaac006347ee2a7dea23fc71d365863c7d3ee72f7cebce","createdAt":"2026-11-19T08:58:14Z"},{"coin":"Rings","poolName":"Rings / WETH 1%","dex":"uniswap-v4-robinhood","vol1h":26727.1033904429,"mc":116659.945,"priceChangeH1":183.346,"call":"WATCH","poolAddress":"0x6426bec74a6da1c9f82434497f8e90bfd3ddbbe6b4438052f7ebdac495728450","createdAt":"2026-11-19T08:48:36Z"},{"coin":"BAGENT","poolName":"BAGENT / WETH","dex":"uniswap-v4-robinhood","vol1h":22718.8327057597,"mc":49903.9721,"priceChangeH1":816.265,"call":"WATCH","poolAddress":"0xeb55cfb6122bd0710a561c7dc9dbcd4cb1c0745ddc1b98cf778dadf8e8ba8fd0","createdAt":"2026-11-19T08:55:53Z"},{"coin":"DacityCoin","poolName":"DacityCoin / WETH 1%","dex":"uniswap-v4-robinhood","vol1h":21407.5854038759,"mc":93667.6321,"priceChangeH1":123.673,"call":"WATCH","poolAddress":"0x67bf3170f880fbf3b88641c375152e204c281daef3b23c8372c7875fd3e1ab02","createdAt":"2026-11-19T08:41:13Z"},{"coin":"Boomer","poolName":"Boomer / WETH 1%","dex":"uniswap-v4-robinhood","vol1h":20273.6546241984,"mc":94012.81981,"priceChangeH1":128.286,"call":"WATCH","poolAddress":"0x1203fa77d297df66a88e56aaf66b55b0140aa6100a5e3615960955ba4dc2b31e","createdAt":"2026-11-19T08:58:33Z"},{"coin":"CENTRIA","poolName":"CENTRIA / WETH","dex":"pons-v2","vol1h":18988.1752523157,"mc":15481.66503,"priceChangeH1":395.665,"call":"WATCH","poolAddress":"0xd35f66f4b6f6e509f91ed46f49178c29dfc7193c","createdAt":"2026-11-19T08:45:44Z"},{"coin":"DacityCoin","poolName":"DacityCoin / WETH 1%","dex":"uniswap-v4-robinhood","vol1h":9398.2584605605,"mc":66950.69749,"priceChangeH1":59.118,"call":"WATCH","poolAddress":"0x408e07274bac882d7766dac39d75942c94d7497f52bcabb4f0e7498393308dff","createdAt":"2026-11-19T08:38:29Z"},{"coin":"PONS","poolName":"PONS / USDG 0.3%","dex":"uniswap-v4-robinhood","vol1h":8568.1030666845,"mc":80592643.48183,"priceChangeH1":-0.151,"call":"PASS","poolAddress":"0x4be9657ec9002e528f4f17a5c43edc525a07f888f7b180c2afbf75e096c4f38a","createdAt":"2026-07-18T01:42:13Z"},{"coin":"VATE","poolName":"VATE / WETH","dex":"pons-v2","vol1h":4083.2626188451,"mc":3914.544229,"priceChangeH1":23.392,"call":"WATCH","poolAddress":"0xb09c716837f3b946756d60a3b436ab28dc93faa2","createdAt":"2026-11-19T09:01:00Z"},{"coin":"PRIORS","poolName":"PRIORS / USDG 1%","dex":"uniswap-v4-robinhood","vol1h":3797.1677621084,"mc":5765664.67298144,"priceChangeH1":-1.77,"call":"PASS","poolAddress":"0x9be7ab27227e115085b0949a819a73f6963ddc6da0c6204d37757c24297706e8","createdAt":"2026-09-25T04:36:16Z"},{"coin":"PONS","poolName":"PONS / USDG","dex":"uniswap-v4-robinhood","vol1h":3514.8637986533,"mc":80114688.7885042,"priceChangeH1":-0.698,"call":"PASS","poolAddress":"0x486435a1f76cd58193f854c6e6213cd05fd58d637865d02065ff558b387fa6ea","createdAt":"2026-09-08T13:29:28Z"},{"coin":"AI","poolName":"AI / PONS 0.3%","dex":"uniswap-v4-robinhood","vol1h":3180.5147614826,"mc":24438921.4989671,"priceChangeH1":-0.019,"call":"PASS","poolAddress":"0x230bc4a0fb5fb7ab27f6e72350dfa3f2489b0cdbaf34f0189d68672086ccb919","createdAt":"2026-09-04T01:58:39Z"},{"coin":"TORCH","poolName":"TORCH / WETH 0.3%","dex":"uniswap-v4-robinhood","vol1h":3012.2635473843,"mc":2679363.42307916,"priceChangeH1":-0.22,"call":"PASS","poolAddress":"0x1649550af1e3363b4c25236434530af7e6886b183e1f574a98fdd1d04d287a2d","createdAt":"2026-10-10T18:21:48Z"},{"coin":"ABLO","poolName":"ABLO / WETH","dex":"pons-v2","vol1h":2360.1961220169,"mc":4101.676373,"priceChangeH1":30.752,"call":"WATCH","poolAddress":"0x40ec05b5a71371985e8e81cd0d11054998e81701","createdAt":"2026-11-19T08:44:24Z"},{"coin":"AFTERGTA6","poolName":"AFTERGTA6 / WETH","dex":"uniswap-v4-robinhood","vol1h":1400.6981318708,"mc":13553.78672,"priceChangeH1":24.768,"call":"WATCH","poolAddress":"0xb39e409f96ce5e384320f0e91ccd51f7661573f781c496541c2d0f823c4e0a29","createdAt":"2026-11-19T09:02:57Z"},{"coin":"FOBO","poolName":"FOBO / WETH","dex":"uniswap-v4-robinhood","vol1h":918.8573542098,"mc":2267231.44181366,"priceChangeH1":-1.315,"call":"PASS","poolAddress":"0x32c50d83271c3af69696fe6b08def9c4f26d38b640da2cdb2a7c39acd8bbca5a","createdAt":"2026-10-26T17:02:37Z"},{"coin":"STONKBROKER","poolName":"STONKBROKER / WETH 1%","dex":"uniswap-v4-robinhood","vol1h":877.2441718377,"mc":8616770.34059257,"priceChangeH1":-2.323,"call":"PASS","poolAddress":"0xd33c8fd38b06e989cdbd4dffdefab71c4bdd415b24964c8d69e38ff35b068f92","createdAt":"2026-07-18T03:50:03Z"},{"coin":"THEOROS","poolName":"THEOROS / WETH","dex":"pons-v2","vol1h":563.1549849257,"mc":2975.405594,"priceChangeH1":-6.095,"call":"PASS","poolAddress":"0x60041fd09491b852ab261181c1178dd3d5c0d7b2","createdAt":"2026-11-19T08:39:50Z"},{"coin":"CASHCAT","poolName":"CASHCAT / USDG 0.269%","dex":"uniswap-v4-robinhood","vol1h":505.7920987431,"mc":43391793.4579727,"priceChangeH1":-0.251,"call":"PASS","poolAddress":"0xa92a3df27a00a276183ff7265fd8affa11df1fe8bb23ddfaf13f6c879a3f818b","createdAt":"2026-07-15T13:39:15Z"},{"coin":"HDAG","poolName":"HDAG / WETH 0.25%","dex":"uniswap-v4-robinhood","vol1h":493.0947880057,"mc":4742.130622,"priceChangeH1":-0.391,"call":"PASS","poolAddress":"0x2483ad61b3c206541dcba267a386f1bab53830f76fbafdb29ce22560c0cfbdfd","createdAt":"2026-11-19T08:54:16Z"},{"coin":"WAXIS","poolName":"WAXIS / WETH","dex":"pons-v2","vol1h":483.5760828705,"mc":2902.232825,"priceChangeH1":-11.473,"call":"PASS","poolAddress":"0xafcf5155ad9324b62ff10471fa410ca662c4167a","createdAt":"2026-11-19T08:44:26Z"},{"coin":"After","poolName":"After / WETH","dex":"pons-v2","vol1h":363.162921492,"mc":3296.525976,"priceChangeH1":6.63,"call":"PASS","poolAddress":"0xb02873804d7968da23d65235ba0ef807ace33a8b","createdAt":"2026-11-19T08:32:16Z"},{"coin":"PKV","poolName":"PKV / WETH","dex":"pons-v2","vol1h":282.5345655847,"mc":2983.873082,"priceChangeH1":-5.817,"call":"PASS","poolAddress":"0x439990589e0fae7b32c3930ca468acb07ee75240","createdAt":"2026-11-19T08:54:41Z"},{"coin":"NOXO","poolName":"NOXO / WETH","dex":"pons-v2","vol1h":277.8850156695,"mc":3643.060383,"priceChangeH1":16.229,"call":"WATCH","poolAddress":"0xf1f6c755422418780c9c018264fbe31cec8f6050","createdAt":"2026-11-19T08:59:49Z"},{"coin":"RAETO","poolName":"RAETO / USDG 5%","dex":"uniswap-v4-robinhood","vol1h":177.968160637,"mc":2014315.74399336,"priceChangeH1":0.174,"call":"PASS","poolAddress":"0x5480a1684776826bc7c98123635ed38accedaa6adeb49f73bc5e87975c1ef995","createdAt":"2026-10-12T15:10:52Z"},{"coin":"Claude","poolName":"Claude / USDG","dex":"uniswap-v4-robinhood","vol1h":169.1536062279,"mc":10185731.53,"priceChangeH1":-0.201,"call":"PASS","poolAddress":"0x035cb8bedb0dbbdeb2e46855ed7c5c0408e1174fd111c103cfa25f7cb62be900","createdAt":"2026-11-19T02:28:38Z"},{"coin":"KESSU","poolName":"KESSU / WETH","dex":"pons-v2","vol1h":139.5345663375,"mc":3098.84511,"priceChangeH1":-2.179,"call":"PASS","poolAddress":"0xbc6de6f7fa4c162b2f2bc16e10ae7be8ed96b35b","createdAt":"2026-11-19T08:57:33Z"},{"coin":"OURA","poolName":"OURA / WETH","dex":"pons-v2","vol1h":128.94739,"mc":3293.63369,"priceChangeH1":4.113,"call":"PASS","poolAddress":"0x955027242832c3fa2c2548f3891c90b66e4c69ad","createdAt":"2026-11-19T08:39:38Z"},{"coin":"BUZZC","poolName":"BUZZC / WETH","dex":"pons-v2","vol1h":122.762177529,"mc":2939.169371,"priceChangeH1":-10.12,"call":"PASS","poolAddress":"0xf3b5c4487c94f81dab6275cbeacf5f7737d6c6ee","createdAt":"2026-11-19T08:35:23Z"},{"coin":"ORBIO","poolName":"ORBIO / USDG 0.8%","dex":"uniswap-v4-robinhood","vol1h":84.7526662812,"mc":16927935.4706524,"priceChangeH1":1.836,"call":"PASS","poolAddress":"0xea9f200e13055b82f175f44f592c4c13dd8c9d9320a66487d3c5cd90d68550ef","createdAt":"2026-09-20T07:06:54Z"},{"coin":"NEX","poolName":"NEX / WETH","dex":"pons-v2","vol1h":34.6493264,"mc":2924.332646,"priceChangeH1":-7.865,"call":"PASS","poolAddress":"0x89ed100a861a89ed44fba4b221e995ef88b806d8","createdAt":"2026-11-19T08:41:17Z"},{"coin":"SNOOZE","poolName":"SNOOZE / WETH","dex":"pons-v2","vol1h":32.42538,"mc":3152.393215,"priceChangeH1":0,"call":"PASS","poolAddress":"0xbeac8d37b2d049b78c8c33fc433b77cf268716c5","createdAt":"2026-11-19T09:00:22Z"},{"coin":"DCTYCN","poolName":"DCTYCN / WETH","dex":"uniswap-v4-robinhood","vol1h":17.8116345,"mc":1106.160688,"priceChangeH1":0.232,"call":"PASS","poolAddress":"0x7520d34b0152b6f9aa65ffe44eb9ebe5771e742fef36dd34cfb20887aa7bb5e6","createdAt":"2026-11-19T08:52:30Z"},{"coin":"APOCRYCOIN","poolName":"APOCRYCOIN / TTWO","dex":"pons-v2","vol1h":17.4259116443,"mc":2273.815191,"priceChangeH1":-5.383,"call":"PASS","poolAddress":"0x07d0948168de0eb2a627b7d7d9c684a8fa981096","createdAt":"2026-11-19T09:02:48Z"},{"coin":"APOCRYCOIN","poolName":"APOCRYCOIN / TTWO","dex":"pons-v2","vol1h":17.392494125,"mc":2419.302193,"priceChangeH1":-1.328,"call":"PASS","poolAddress":"0x41a8a3c9074b8c29128ea06e62db1afd63bebf11","createdAt":"2026-11-19T09:02:12Z"},{"coin":"MOLDRICK","poolName":"MOLDRICK / WETH","dex":"uniswap-v4-robinhood","vol1h":16.03635165,"mc":1103.336185,"priceChangeH1":-0.192,"call":"PASS","poolAddress":"0x5f7dc6f6637deda236e3a3118271209d6ef38a8db2408dfa2088a0d00bd2b497","createdAt":"2026-11-19T08:44:04Z"},{"coin":"GHOST","poolName":"GHOST / WETH","dex":"pons-v2","vol1h":10.392097968,"mc":2913.525716,"priceChangeH1":-7.768,"call":"PASS","poolAddress":"0x02ae076c027bdf56acc1653853970c5c7542d505","createdAt":"2026-11-19T08:34:34Z"}],"candidates":{"0x7e2c0a665872f06ca39ee64deed1e9e65fcecc6f":0.0000135537867205841,"0x0000000000000000000000000000000000000000":1801.23,"0x3a55fd65782169e4aba6fd1deac984aa572c63ed":0.00000227381519069231,"0x5e81213613b6b86eab4c6c50d718d34359459786":219.171589609007,"0xedb58c8920af2057717f4b6c440cec273d712221":0.000004181622575288,"0x0bd7d308f8e1639fab988df18a8011f41eacad73":1801.23,"0x71092897ffa7b6a162b8cbe45285f10d1f3249d2":0.00000241930219270703,"0xf491dfbaeb773359a666c523ef09e826ab25d0c9":0.00000568051748241681,"0x8e0130bcd9d9c14f8b6470a095e2e346b2830087":0.00000110192892443989,"0x8781ebbe2bd9f0797df5478de670f11f059c816c":0.00000391454422936659,"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee":1801.23,"0x608278e9de9967ace5df8cc26c4c29ebb75b9d0f":0.00000315239321505155,"0x7dab1425738575248911185a43ca97495d305b1b":0.0000132688063441502,"0xd31c97c6b21e439ab2838d9c30237941104aefd3":0.0000036430603829096,"0xed59bb20ae3a63fb7733f63500b704c2c5567777":0.0000940128198113971,"0x7f705342cb50eecfebefb17b0beda078bfb6b186":0.000103530377947228,"0x701cb0d2e9e74bfe3657f873071e659fd334b8b8":0.00000309884511046545,"0x7bade8971bf15cf3d85e7ee65e54b6087618cccc":0.00000400165012148703,"0x5fc5360d0400a0fd4f2af552add042d716f1d168":0.998129505434313,"0x461651791ad49ab47df49c85039fb0b91db526bc":0.0000119146343218427,"0x7ff5762bfa68245085c593d5e4207779be6c7777":5.00677953439553e-7,"0x5469b5fd3dbc67c192855f6a61aef2163dac43fb":0.00000298387308249,"0x59de2dfded2b9cb286fadd218112c813ee995df6":0.00000474213062209655,"0xddd30cea2e85c26fdac1c0f738b05c14cad31adb":4.44804703918895e-8,"0x8189f7dae6a333b598ac2336906b6e8604dfdd3f":0.00000110616068824507,"0x7691b957409027027b97bccb7821b43f4ab17777":0.000116659945030737,"0x7b758fb870527b32ec959a57676394d6139ce4be":0.000133151412889294,"0xc9f2da36a9ddcb5e6895b50cd94aa8083a45a21f":1.57890469861462e-15,"0x0c2822cdca58a9f630f1a6c87d73915181a9912d":0.0000160545936590173,"0xc781c0a082fd00095c4f23cea9eb939bdd436d8c":0.00000290223282464733,"0xd401bc390dfeede68669622216fc2b6bf5060fad":0.00000410167637326137,"0x20ccbd9e31a825e747c0c46f6a7d2da2c03a0087":0.00000110333618511078,"0xd95e76d3f02e58fb991ec5ba04755ebaa8d34b8d":5.73485356080578e-8,"0x485746c3f335fec5df62f143442ea1357669be88":0.0000029243326464,"0x2bebe4a5c1430fb3bb57431286884d5802667777":0.0000936676321004628,"0xecdfad9fe902e2364521fa397b6bdace990ccf5a":0.000002975405594075,"0x8fecfeba409008ac8abb835452ff47a07d5ac209":0.00000329363369002741,"0x65cec72a370a856e602c8a263a76172d3de67777":0.000066951084693164,"0x3d8f728b69a89d8479b74538fd4d07958c630324":0.000108224782587397,"0x8937a15ffc41829a8b5d56e450ec561d15248714":0.00000290997637102578,"0xddb4a6938c0a3a80f2a6b1081dc69a4a96bd0087":0.00000110154359397303,"0xd379bb5a08a02cdf1f75a39c376262beddfb3f8c":0.0000029391693714432,"0xb02b0a1e31b1f1e7be03b1bbfce5ae05b2c9e8b1":0.000002913525715968,"0x5b8ccaa604cd9b232400cb3f5c7267806aaf851b":0.00000329652597573673,"0x39dbed3a2bd333467115de45665cc57f813c4571":0.119661937892114,"0x020bfc650a365f8bb26819deaabf3e21291018b4":0.0438609151246621,"0x18e674231a58c239dc7daedcffe15ec3a24cff5c":0.0137167529839166,"0x9790ff07aeea328cde9dabd5128b045cca8d1e18":0.000367173661346095,"0x0b7c6c138dc75622f4200d157b13fb93e6bd94fa":0.195682922160507,"0xe8ffd7e24187f72afb08d75b1bb13088a989a791":0.00285672151302483,"0x2e8c31162b855a2ffa90f6f8634643ad6f111e18":0.0245300519748786,"0xd0601ce157db5bdc3162bbac2a2c8af5320d9eec":153.389044272226,"0xaa07a0e9209e16ac99708c3ec70159c6ef3128a3":0.0178188973468003,"0xedbf91223639800bcd5756815caf908df3b890be":0.00576566959488066,"0x4db7374e966097be94c6680d49156d580f097bbf":0.143717428123403,"0x7fe995a80075df3dc8ae11a9b82c7fe4202cd87f":0.00722304066789826,"0x6245e67affa44a23077f0ea7f981a8dc743a0c47":0.00220455119864973,"0x000de658153f47f23e92973c8eb1e89762703676":0.00229196975348674,"0xb0007d59fe4050a1636c2fa19038973d16481337":0.0303141544197536,"0x56910d4409f3a0c78c64dd8d0545ff0705389870":0.00455039968852278,"0xded852de9fe9ba9b6f27f39e8e81cf851a5c79cc":0.00100658968617858,"0xd281bf1649c5db6744d23f61bb25b05b4d1dff35":0.000117332597132272,"0x42afa2124ca5a2b83898e46b2da9a190995b1e18":0.0017489227900926,"0xc9a981fee1f9dec688bb123ccdecc63d0debfc4e":343.015108134982,"0x5d102d1e69e77591d486aa4f663b3645151bbdf6":0.00643884858591035,"0xfad17d7cc41d9c9ca4a459da798a4446dd217974":0.000437753958839949,"0xcec185eb182c47d1ba1efc84e6959e18cd620be4":63580.6794181533,"0x57c0e45cb534413d1c20a4240955d6bb250bb4f1":0.113652340419257,"0x72be1277e198d0c476869253cb4e62807e14533c":0.0020143390535853,"0x7dbf38976f6d3b9c529e7d9484a71898b409ee6a":0.00453130950139611,"0x0339f5459fc690ac85f1782e15782a151b4a9e1b":0.00968261574819804,"0x4cff77d5a2155ed9a4c0ec33baf338c4f0c84975":0.000101857315254631,"0x000050e18ffa3f8f7ad170eb9cef160eb3ed1111":0.0028377623515674,"0xf8bc08092c06db6148114dcf82af881f1085f92b":0.000277413860148508,"0xe934e36a439c94017b64a3fece66af12099abf50":0.00364511207030264,"0x94641b97010608c3827fb058074889f19868ff33":0.00231689108437827}};
+var SNAPSHOT_TAKEN_LABEL = "19 Nov 2026 · 16:05 WIB";
+var SNAPSHOT_TAKEN_TIME = "16:05:33 WIB";
+
+var THEMES = [
+  { name: "Bright day", filter: "none", shade: "linear-gradient(180deg, rgba(24,120,220,.05), rgba(255,255,255,0))" },
+  { name: "Sunset sea", filter: "sepia(.45) hue-rotate(-18deg) saturate(1.55) brightness(.92)", shade: "linear-gradient(180deg, rgba(255,110,60,.30), rgba(90,40,140,.30))" },
+  { name: "Peach", filter: "sepia(.35) saturate(1.3) brightness(1.07) hue-rotate(-8deg)", shade: "linear-gradient(180deg, rgba(255,170,110,.20), rgba(255,140,90,.10))" },
+  { name: "Above the clouds", filter: "saturate(.55) brightness(1.09)", shade: "linear-gradient(180deg, rgba(215,232,246,.20), rgba(215,232,246,.08))" },
+  { name: "Lilac", filter: "hue-rotate(38deg) saturate(.85) brightness(1.03)", shade: "linear-gradient(180deg, rgba(170,140,255,.24), rgba(120,100,220,.12))" },
+  { name: "Dusk", filter: "hue-rotate(-22deg) sepia(.3) brightness(1.06) saturate(1.15)", shade: "linear-gradient(180deg, rgba(140,170,255,.26), rgba(255,160,190,.26))" },
+  { name: "High", filter: "saturate(1.35) brightness(1.12) contrast(1.05)", shade: "linear-gradient(180deg, rgba(30,120,255,.08), rgba(255,255,255,0))" },
+  { name: "Rose", filter: "hue-rotate(-35deg) saturate(1.3) sepia(.2)", shade: "linear-gradient(180deg, rgba(255,120,170,.24), rgba(200,80,160,.12))" },
+  { name: "Soft blue", filter: "saturate(1.05) brightness(1.05) hue-rotate(6deg)", shade: "linear-gradient(180deg, rgba(120,180,255,.16), rgba(120,180,255,.04))" },
+  { name: "Wisps", filter: "saturate(.8) brightness(1.12)", shade: "linear-gradient(180deg, rgba(160,200,240,.16), rgba(160,200,240,.05))" },
+  { name: "Cirrus", filter: "saturate(.65) brightness(1.16)", shade: "linear-gradient(180deg, rgba(190,220,250,.20), rgba(190,220,250,.06))" },
+  { name: "Fair", filter: "saturate(.9) brightness(1.14) hue-rotate(8deg)", shade: "linear-gradient(180deg, rgba(205,228,255,.22), rgba(255,210,235,.12))" }
+];
+var WALLETS = ["No wallet", "Main ····4f2a", "Watch only", "Trading ····9c1e"];
+var VIEW_META = {
+  Wallet: { title: "Wallet", sub: "Your Privy wallet on Robinhood Chain — balances, send, receive, and swap." },
+  Portfolio: { title: "Portfolio", sub: "Your own wallet on Robinhood Chain — live ETH balance and tokens, read straight from the chain." },
+  Terminal: { title: "Terminal", sub: "Pons coins on Robinhood Chain — new pools and graduations, from the snapshot baked into this page." },
+  Recipes: { title: "Recipes", sub: "Saved task templates. Run one and the agents get to work on the desk." },
+  Schedules: { title: "Schedules", sub: "Tasks Crumble runs on a clock for you." },
+  Extension: { title: "Extension", sub: "Crumble for Chrome — check coins from any tab." },
+  Docs: { title: "Docs", sub: "How tasks, wallets, recipes, and schedules work." }
+};
+var RECIPES = [
+  { title: "Graduated Coin Sniper", text: "Filter today's graduated coins, check each dev's wallet, and surface only the ones that pass every check.", prompt: "Find a coin that graduated today, check its dev, watch its chart" },
+  { title: "Dev Wallet Deep Check", text: "Open a dev's wallet: does he still hold, were there bundled buys at launch, are the early buyers still in?", prompt: "Check the dev wallet of the top graduated coin today" },
+  { title: "Retest Watcher", text: "Watch a coin's 5-minute chart and call you when it retests a level instead of chasing the first spike.", prompt: "Watch KIPLO on the 5-minute chart and call me at the retest" },
+  { title: "Daily Desk Brief", text: "A short morning summary: what graduated, what your agents flagged, and what is worth a second look.", prompt: "Give me today's desk brief: graduations, flags, and coins worth a second look" }
+];
+var SLOT_SPOTS = [
+  { left: "63%", top: "16%", width: 230, height: 148 },
+  { left: "6%", top: "54%", width: 190, height: 120 },
+  { left: "60%", top: "60%", width: 260, height: 160 },
+  { left: "28%", top: "10%", width: 180, height: 110 },
+  { left: "70%", top: "38%", width: 200, height: 132 }
+];
+var SIDE_ITEMS = ["New Task", "Desk", "Wallet", "Portfolio", "Terminal", "Recipes", "Schedules", "Extension"];
+var SIDE_ICONS = {
+  "New Task": '<rect x="3.5" y="5" width="15" height="15" rx="3.5" /><path d="M18.5 3l.6 1.7L20.8 5.3l-1.7.6-.6 1.7-.6-1.7-1.7-.6 1.7-.6z" fill="currentColor" stroke="none" />',
+  "Desk": '<rect x="3" y="4.5" width="13.5" height="10.5" rx="2" /><path d="M8 19.5h9M12.5 15v4.5M17 8.5h2.5a1.5 1.5 0 0 1 1.5 1.5v6a1.5 1.5 0 0 1-1.5 1.5H17" />',
+  "Wallet": '<rect x="3" y="6" width="18" height="13" rx="3" /><path d="M16.5 12.5h.01M3 10h18" />',
+  "Portfolio": '<path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5H12z" /><path d="M15 3.2a8.5 8.5 0 0 1 5.8 5.8H15z" />',
+  "Terminal": '<path d="M7 4v3M7 13v3M5 7h4v6H5zM16.5 6v2.5M16.5 14.5V17M14.5 8.5h4v6h-4z" />',
+  "Recipes": '<circle cx="12" cy="12" r="8.5" /><path d="M10.2 9.3v5.4L15 12z" fill="currentColor" stroke="none" />',
+  "Schedules": '<rect x="3.5" y="5" width="15" height="15.5" rx="3" /><path d="M3.5 10h15M8 3v4M15 3v4" /><circle cx="16.8" cy="16.8" r="4" fill="#15121f" /><path d="M16.8 14.8v2l1.4 1" />',
+  "Extension": '<path d="M12 4v10.5M7.5 10.5L12 15l4.5-4.5M4.5 19.5h15" />'
+};
+
+/* ================= helpers ================= */
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+function trimNum(n) { var s = n >= 100 ? String(Math.round(n)) : n.toFixed(1); return s.endsWith(".0") ? s.slice(0, -2) : s; }
+function fmtCompact(v) {
+  if (!Number.isFinite(v) || v <= 0) return "0";
+  if (v >= 1000000) return trimNum(v / 1000000) + "M";
+  if (v >= 1000) return trimNum(v / 1000) + "K";
+  return String(Math.round(v));
+}
+function fmtChange(v) { return (v > 0 ? "+" : "") + v.toFixed(1) + "%"; }
+function fmtTime(iso) {
+  if (!iso) return "—";
+  var d = new Date(iso);
+  return isNaN(d.getTime()) ? "—" : d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+function fmtUsd(v) { return "$" + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function shortAddress(a) { return a.length > 12 ? a.slice(0, 6) + "…" + a.slice(-4) : a; }
+
+var toastTimer = null;
+function showToast(msg) {
+  var t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { t.classList.remove("show"); }, 3200);
+}
+
+/* ================= state ================= */
+var rows = (SNAPSHOT && SNAPSHOT.rows) || [];
+var deskRows = rows.slice(0, 6);
+var themeIdx = 0, pendingTheme = 0, locOpen = true;
+var light = false;
+var sideOpen = false, sideWidth = 260, sideActive = "New Task";
+var view = null, pendingView = null;
+var session = null; // { identity, refreshToken, walletAddress }
+var count = 3, walletIdx = 0;
+var schedules = [
+  { name: "Daily Desk Brief", when: "Every day · 08:00 WIB", paused: false },
+  { name: "Graduation Scan", when: "Every hour · on the hour", paused: false },
+  { name: "Retest Watch — KIPLO", when: "5-minute chart · until the retest hits", paused: false },
+  { name: "Weekly Portfolio Review", when: "Sundays · 19:00 WIB", paused: true }
+];
+
+/* ================= terminal tables ================= */
+function rowHtml(r, i, shownCalls) {
+  var cls = r.priceChangeH1 > 0 ? "up" : r.priceChangeH1 < 0 ? "down" : "";
+  var show = shownCalls === null || i < shownCalls ? " show" : "";
+  return '<tr' + (r.call === "PASS" ? ' class="faded"' : "") + '>' +
+    '<td class="coin">' + esc(r.coin) + "</td>" +
+    "<td>" + fmtCompact(r.vol1h) + "</td>" +
+    "<td>" + fmtCompact(r.mc) + "</td>" +
+    '<td class="' + cls + '">' + fmtChange(r.priceChangeH1) + "</td>" +
+    "<td>—</td>" +
+    '<td style="text-align:right"><span class="call ' + r.call.toLowerCase() + show + '">' + r.call + "</span></td></tr>";
+}
+function renderDeskTerminal(shownCalls) {
+  $("deskTermBody").innerHTML = deskRows.map(function (r, i) { return rowHtml(r, i, shownCalls); }).join("");
+}
+renderDeskTerminal(0);
+
+/* ================= sky / location picker ================= */
+function applyTheme() {
+  var t = THEMES[themeIdx];
+  $("skyLayer").style.filter = t.filter === "none" ? "" : t.filter;
+  $("skyShade").style.background = t.shade;
+}
+function renderLocGrid() {
+  $("locGrid").innerHTML = THEMES.map(function (t, i) {
+    return '<button type="button" class="loc-thumb' + (pendingTheme === i ? " sel" : "") + '" data-loc="' + i + '" aria-label="' + esc(t.name) + '" title="' + esc(t.name) + '">' +
+      '<i style="background-image:url(assets/sky.jpg);filter:' + t.filter + '"></i>' +
+      '<i style="background:' + t.shade + '"></i>' +
+      '<span class="badge">✓</span></button>';
+  }).join("");
+  $("locName").textContent = THEMES[pendingTheme].name;
+  Array.prototype.forEach.call($("locGrid").querySelectorAll("[data-loc]"), function (b) {
+    b.addEventListener("click", function () { pendingTheme = Number(b.getAttribute("data-loc")); renderLocGrid(); });
+  });
+}
+function setLocOpen(open) {
+  locOpen = open;
+  $("locPicker").hidden = !open;
+  $("reopenLoc").hidden = open;
+}
+$("locClose").addEventListener("click", function () { pendingTheme = themeIdx; setLocOpen(false); });
+$("locDone").addEventListener("click", function () {
+  themeIdx = pendingTheme;
+  applyTheme();
+  setLocOpen(false);
+  showToast("Desk sky set to: " + THEMES[themeIdx].name);
+});
+$("reopenLoc").addEventListener("click", function () { pendingTheme = themeIdx; renderLocGrid(); setLocOpen(true); });
+renderLocGrid();
+applyTheme();
+
+/* ================= sidebar ================= */
+function renderSideMenu() {
+  var q = $("sideSearch").value.trim().toLowerCase();
+  var items = SIDE_ITEMS.filter(function (n) { return !q || n.toLowerCase().indexOf(q) >= 0; });
+  $("sideMenu").innerHTML = items.length
+    ? items.map(function (n) {
+        return '<button class="side-item' + (sideActive === n ? " active" : "") + '" data-side="' + esc(n) + '">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">' + SIDE_ICONS[n] + "</svg>" + esc(n) + "</button>";
+      }).join("")
+    : '<p class="side-empty">No menu items match your search.</p>';
+  Array.prototype.forEach.call($("sideMenu").querySelectorAll("[data-side]"), function (b) {
+    b.addEventListener("click", function () { sideGo(b.getAttribute("data-side")); });
+  });
+}
+function setSideOpen(open) {
+  sideOpen = open;
+  $("sidebar").classList.toggle("open", open);
+  $("sidebar").setAttribute("aria-hidden", open ? "false" : "true");
+  $("sideScrim").classList.toggle("show", open);
+  $("sidebarToggle").setAttribute("aria-expanded", open ? "true" : "false");
+}
+$("sidebarToggle").addEventListener("click", function () { setSideOpen(!sideOpen); });
+$("sideScrim").addEventListener("click", function () { setSideOpen(false); });
+$("sideSearch").addEventListener("input", renderSideMenu);
+$("sideCompose").addEventListener("click", function () { sideGo("New Task"); });
+$("sideDocs").addEventListener("click", function () { sideGo("Docs"); });
+$("sideExt").addEventListener("click", function () { sideGo("Extension"); });
+$("sideLocBtn").addEventListener("click", function () {
+  setSideOpen(false); closeView(); pendingTheme = themeIdx; renderLocGrid(); setLocOpen(true);
+  $("centerStack").scrollIntoView({ block: "center", behavior: "smooth" });
+});
+$("sideThemeBtn").addEventListener("click", function () {
+  light = !light;
+  document.body.classList.toggle("light-mode", light);
+  $("sideThemeBtn").setAttribute("aria-pressed", light ? "true" : "false");
+  $("sideThemeLabel").textContent = light ? "Switch to Dark" : "Switch to Light";
+  showToast(light ? "Light mode — white chrome, dark text" : "Dark mode — back to the night desk");
+});
+renderSideMenu();
+
+/* sidebar resize (desktop drag handle) */
+$("sideResize").addEventListener("pointerdown", function (e) {
+  e.preventDefault();
+  var sb = $("sidebar");
+  var startX = e.clientX, startW = sb.getBoundingClientRect().width;
+  document.body.classList.add("side-resizing");
+  function move(ev) {
+    sideWidth = Math.max(200, Math.min(480, startW + (ev.clientX - startX)));
+    sb.style.width = sideWidth + "px";
+  }
+  function up() {
+    document.body.classList.remove("side-resizing");
+    window.removeEventListener("pointermove", move);
+    window.removeEventListener("pointerup", up);
+    window.removeEventListener("pointercancel", up);
+  }
+  window.addEventListener("pointermove", move);
+  window.addEventListener("pointerup", up);
+  window.addEventListener("pointercancel", up);
+});
+
+/* ================= views ================= */
+function openView(name) {
+  view = name;
+  $("viewTitle").textContent = VIEW_META[name].title;
+  $("viewSub").textContent = VIEW_META[name].sub;
+  $("viewPanel").hidden = false;
+  requestAnimationFrame(function () {
+    $("viewScrim").classList.add("show");
+    $("viewPanel").classList.add("show");
+  });
+  renderView();
+}
+function closeView() {
+  view = null;
+  $("viewScrim").classList.remove("show");
+  $("viewPanel").classList.remove("show");
+  setTimeout(function () { if (!view) $("viewPanel").hidden = true; }, 320);
+}
+$("viewClose").addEventListener("click", closeView);
+$("viewScrim").addEventListener("click", closeView);
+
+function renderView() {
+  if (!view) return;
+  var body = $("viewBody");
+  if (view === "Wallet") body.innerHTML = walletViewHtml();
+  else if (view === "Portfolio") { body.innerHTML = portfolioViewHtml(); wirePortfolio(); }
+  else if (view === "Terminal") { body.innerHTML = terminalViewHtml(); wireTerminal(); }
+  else if (view === "Recipes") { body.innerHTML = recipesViewHtml(); wireRecipes(); }
+  else if (view === "Schedules") { body.innerHTML = schedulesViewHtml(); wireSchedules(); }
+  else if (view === "Extension") { body.innerHTML = extensionViewHtml(); wireExtension(); }
+  else if (view === "Docs") body.innerHTML = docsViewHtml();
+  if (view === "Wallet") wireWallet();
+}
+
+function walletViewHtml() {
+  var id = session ? session.identity : "—";
+  var addr = session && session.identity.indexOf("0x") === 0
+    ? esc(session.identity)
+    : "Embedded wallet by Privy — address appears here once your wallet is created at sign-in.";
+  return '<div class="view-section">' +
+    '<div class="view-total"><b>$0.00</b><span>Total balance · Robinhood Chain</span></div>' +
+    '<div class="view-card"><h3>Connected wallet</h3>' +
+    '<p class="wallet-addr">' + addr + "</p>" +
+    '<div style="margin-top:10px">' +
+    '<div class="kv"><span>Signed in as</span><b>' + esc(id) + "</b></div>" +
+    '<div class="kv"><span>Network</span><b>Robinhood Chain</b></div>' +
+    '<div class="kv"><span>Provider</span><b>Privy</b></div>' +
+    '<div class="kv"><span>Spending limit</span><b>Set by you in each task</b></div>' +
+    "</div></div>" +
+    '<div class="view-card"><h3>Balances</h3>' +
+    '<div class="view-row"><span class="coin-badge">ETH</span><div class="grow"><b>Ethereum</b><span>Gas on Robinhood Chain</span></div><div class="amt"><b>0.0000</b><span class="up">$0.00</span></div></div>' +
+    '<div class="view-row"><span class="coin-badge">KIP</span><div class="grow"><b>KIPLO</b><span>Watched by Crumble 3</span></div><div class="amt"><b>0</b><span>$0.00</span></div></div>' +
+    "</div>" +
+    '<div class="view-actions">' +
+    '<button type="button" class="primary" data-wallet-msg="send">Send</button>' +
+    '<button type="button" data-wallet-msg="receive">Receive</button>' +
+    '<button type="button" data-wallet-msg="swap">Swap</button>' +
+    "</div>" +
+    '<div class="view-msg" id="walletMsg" role="status"></div>' +
+    '<p class="view-note">Crumble only spends inside limits you set. Sending and swapping always ask for your confirmation first — nothing moves from this preview alone.</p>' +
+    "</div>";
+}
+function wireWallet() {
+  var msgs = {
+    send: "Send: tell Crumble in the command bar, e.g. “Send 0.01 ETH to …”. Crumble prepares it and asks you to confirm before anything moves.",
+    receive: "Receive: share your wallet identity shown above — send only Robinhood Chain assets to it, and double-check the network before sending.",
+    swap: "Swap: ask in plain words in the command bar, e.g. “Swap ETH for KIPLO”. Crumble shows the quote first and only swaps inside the limit you set."
+  };
+  Array.prototype.forEach.call(document.querySelectorAll("[data-wallet-msg]"), function (b) {
+    b.addEventListener("click", function () {
+      var m = $("walletMsg");
+      m.textContent = msgs[b.getAttribute("data-wallet-msg")];
+      m.classList.add("show");
+    });
+  });
+}
+
+function terminalViewHtml() {
+  var head = '<thead><tr><th>coin</th><th>vol 1h</th><th>mc</th><th>1h %</th><th>dev</th><th style="text-align:right">call</th></tr></thead>';
+  return '<div class="view-section">' +
+    '<div style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap">' +
+    '<span class="live-pill stale"><i></i>SNAPSHOT</span>' +
+    '<span style="color:#9db9d2;font-size:12.5px">Taken ' + SNAPSHOT_TAKEN_LABEL + " · " + SNAPSHOT_TAKEN_TIME + "</span>" +
+    "</div>" +
+    '<input class="view-search" id="termSearch" type="search" placeholder="Filter coins — try a name or BUY" aria-label="Filter terminal coins" autocomplete="off" />' +
+    '<div class="view-card" style="padding:6px 0 10px;overflow:hidden">' +
+    '<table class="ttable full" aria-label="Terminal — Pons coins on Robinhood Chain (snapshot)">' + head + '<tbody id="termFullBody"></tbody></table>' +
+    '<p class="view-note" id="termNoMatch" style="padding:0 16px" hidden>No coins match that filter.</p>' +
+    "</div>" +
+    '<p class="view-note">New pools from Pons (pons-v2) and Pons graduations on Uniswap v4, Robinhood Chain — fetched once from GeckoTerminal when this static page was built (' + SNAPSHOT_TAKEN_LABEL + ') and baked in as a snapshot; it does not refresh itself. The dev column shows “—”: this source doesn\'t publish dev holdings. Calls come from a simple rule on 1-hour volume and 1-hour price movement: BUY needs $100K+ volume and +5% or more, WATCH needs $25K+ volume or a +10% move.</p>' +
+    "</div>";
+}
+function renderTermFull() {
+  var q = $("termSearch").value.trim().toLowerCase();
+  var filtered = rows.filter(function (r) {
+    if (!q) return true;
+    return (r.coin + " " + r.poolName + " " + r.call + " " + r.dex).toLowerCase().indexOf(q) >= 0;
+  });
+  $("termFullBody").innerHTML = filtered.map(function (r, i) { return rowHtml(r, i, null); }).join("");
+  $("termNoMatch").hidden = filtered.length > 0;
+}
+function wireTerminal() { $("termSearch").addEventListener("input", renderTermFull); renderTermFull(); }
+
+function recipesViewHtml() {
+  return '<div class="view-section">' + RECIPES.map(function (r, i) {
+    return '<div class="view-card"><h3>' + esc(r.title) + "</h3><p>" + esc(r.text) + '</p>' +
+      '<div class="view-actions"><button type="button" class="primary" data-recipe="' + i + '">Run recipe</button></div></div>';
+  }).join("") + "</div>";
+}
+function wireRecipes() {
+  Array.prototype.forEach.call(document.querySelectorAll("[data-recipe]"), function (b) {
+    b.addEventListener("click", function () { runRecipe(RECIPES[Number(b.getAttribute("data-recipe"))].prompt); });
+  });
+}
+
+function schedulesViewHtml() {
+  return '<div class="view-section"><div class="view-card">' + schedules.map(function (s, i) {
+    return '<div class="view-row"><div class="grow"><b>' + esc(s.name) + "</b><span>" + esc(s.when) + "</span></div>" +
+      '<span class="view-status' + (s.paused ? " paused" : "") + '">' + (s.paused ? "PAUSED" : "ACTIVE") + "</span>" +
+      '<div class="view-actions" style="margin-top:0"><button type="button" data-sched="' + i + '">' + (s.paused ? "Resume" : "Pause") + "</button></div></div>";
+  }).join("") + "</div>" +
+  '<p class="view-note">Schedules run inside the limits you set for each task. Pausing here stops the next run; it never deletes the schedule.</p></div>';
+}
+function wireSchedules() {
+  Array.prototype.forEach.call(document.querySelectorAll("[data-sched]"), function (b) {
+    b.addEventListener("click", function () {
+      var i = Number(b.getAttribute("data-sched"));
+      var was = schedules[i].paused;
+      schedules[i].paused = !was;
+      showToast(was ? "Schedule resumed" : "Schedule paused — it will skip its next run");
+      renderView();
+    });
+  });
+}
+
+function extensionViewHtml() {
+  return '<div class="view-section">' +
+    '<div class="view-card"><h3>Crumble for Chrome</h3>' +
+    "<p>Track coins from any tab. Highlight a contract address on any page and Crumble checks the dev, the chart, and today's terminal — without leaving the page.</p>" +
+    '<div style="margin-top:10px">' +
+    '<div class="kv"><span>Version</span><b>1.0</b></div>' +
+    '<div class="kv"><span>Works on</span><b>Chrome &amp; Chromium browsers</b></div>' +
+    '<div class="kv"><span>Account</span><b>Same Privy sign-in as this desk</b></div>' +
+    "</div></div>" +
+    '<div class="view-card"><h3>What it can see</h3><ul class="perm-list">' +
+    "<li>The address or coin you highlight — nothing else on the page</li>" +
+    "<li>Your Crumble tasks, so a check started in the browser lands on this desk</li>" +
+    "<li>No browsing history, no passwords, no other tabs</li>" +
+    "</ul></div>" +
+    '<div class="view-actions">' +
+    '<button type="button" class="primary" id="extInstallBtn">How to install</button>' +
+    '<button type="button" id="extDeskBtn">Open the desk</button>' +
+    "</div>" +
+    '<div class="view-msg" id="extMsg" role="status"></div>' +
+    "</div>";
+}
+function wireExtension() {
+  $("extInstallBtn").addEventListener("click", function () {
+    var m = $("extMsg");
+    m.textContent = "Install: 1) Open the Chrome Web Store and search “Crumble”. 2) Click Add to Chrome. 3) Pin it, then sign in with the same Privy account you use on this desk.";
+    m.classList.add("show");
+  });
+  $("extDeskBtn").addEventListener("click", function () { sideGo("Desk"); });
+}
+
+function docsViewHtml() {
+  return '<div class="view-section">' +
+    '<div class="view-card"><h3>Tasks</h3><p>Ask in plain words from the desk\'s command bar. Pick how many agents run with the stepper — Terminal filters, Browser checks the dev, Chart watches the price.</p></div>' +
+    '<div class="view-card"><h3>Ask Crumble — live AI</h3><p>Questions in the command bar are answered for real by Gemini (model gemini-3.5-flash-lite) through the /api/ask Vercel serverless function, with live Pons pool data from GeckoTerminal as context — every question gets its own answer. Setup: add GEMINI_API_KEY as an Environment Variable in the Vercel dashboard (Project → Settings → Environment Variables) and redeploy. The function reads the key from that variable; it is never written into the page code. If the function is missing, the key is not set, or Gemini is unreachable, the desk shows an honest error instead of an answer.</p></div>' +
+    '<div class="view-card"><h3>Wallets &amp; limits</h3><p>Sign in with Privy (email code, GitHub, Google, or a wallet). Crumble only spends inside limits you set, and every send or swap asks you to confirm first.</p></div>' +
+    '<div class="view-card"><h3>Recipes &amp; schedules</h3><p>Recipes are saved task templates you can run in one tap. Schedules run them on a clock — pause one any time from the Schedules menu.</p></div>' +
+    '<div class="view-card"><h3>More from Crumble</h3><p>Updates and announcements are posted on X at <a href="https://x.com/usecrumblelive" target="_blank" rel="noopener" style="color:#7cc4ff">@usecrumblelive</a> — use the X link at the bottom of the sidebar.</p></div>' +
+    "</div>";
+}
+
+/* ================= navigation ================= */
+function sideGo(name) {
+  sideActive = name;
+  setSideOpen(false);
+  renderSideMenu();
+  if (name === "New Task") {
+    closeView();
+    resetDemo();
+    $("askInput").value = "";
+    updateSendBtn();
+    $("centerStack").scrollIntoView({ block: "center", behavior: "smooth" });
+    setTimeout(function () { $("askInput").focus(); }, 250);
+    showToast("New task — tell Crumble what to do on chain");
+  } else if (name === "Desk") {
+    closeView();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    showToast("Desk — your three agents and the command bar");
+  } else if (name === "Wallet") {
+    if (!session) {
+      pendingView = "Wallet";
+      showToast("Sign up or log in with Privy first — your wallet opens right after");
+      openAuth("signup");
+    } else {
+      openView("Wallet");
+    }
+  } else if (VIEW_META[name]) {
+    openView(name);
+  } else {
+    showToast(name + " — focused on the desk");
+  }
+}
+function runRecipe(prompt) {
+  closeView();
+  sideGo("Desk");
+  $("askInput").value = prompt;
+  updateSendBtn();
+  $("centerStack").scrollIntoView({ block: "center", behavior: "smooth" });
+  setTimeout(function () { runCrumble(prompt); }, 350);
+}
+
+/* ================= portfolio (live chain read, browser-side) =================
+   Empty until sign-in. After sign-in, the signed-in wallet's ETH balance
+   and ERC-20 balances are read straight from the Robinhood Chain RPC by
+   this page; candidate tokens and USD prices come from the build-time
+   GeckoTerminal snapshot baked into this page. Nothing is stored. */
+var RH_RPC = "https://rpc.mainnet.chain.robinhood.com";
+var WETH_RH = "0x0bd7d308f8e1639fab988df18a8011f41eacad73";
+var USDG_RH = "0x5fc5360d0400a0fd4f2af552add042d716f1d168";
+var ADDRESS_RE = /^0x[0-9a-fA-F]{40}$/;
+var portfolioState = { status: "idle", data: null, error: null }; // idle | loading | ok | error
+
+function portfolioViewHtml() {
+  if (!session) {
+    return '<div class="view-section">' +
+      '<div class="view-card" style="text-align:center;padding:28px 20px">' +
+      "<h3>Your portfolio is empty</h3>" +
+      '<p style="max-width:420px;margin:8px auto 0">Nothing is tracked here until you sign in. Sign in with Privy and this page shows your own wallet on Robinhood Chain — its live ETH balance and the tokens it holds.</p>' +
+      '<div class="view-actions" style="justify-content:center"><button type="button" class="primary" id="pfSignIn">Sign in with Privy</button></div>' +
+      "</div></div>";
+  }
+  var wa = session.walletAddress;
+  var head = '<div class="view-section">' +
+    '<div class="view-card"><h3>Connected wallet</h3><div style="margin-top:10px">' +
+    '<div class="kv"><span>Signed in as</span><b>' + esc(session.identity) + "</b></div>" +
+    '<div class="kv"><span>Wallet</span><b>' + (wa ? '<span title="' + esc(wa) + '">' + esc(shortAddress(wa)) + "</span>" : "No wallet linked yet") + "</b></div>" +
+    '<div class="kv"><span>Network</span><b>Robinhood Chain</b></div>' +
+    "</div></div>";
+  if (!wa) {
+    return head +
+      '<div class="view-card"><h3>No assets yet</h3><p>This account has no wallet address yet, so there is nothing to show. Once a Privy wallet is created for your account — or you sign in with a wallet — your live portfolio appears here.</p></div></div>';
+  }
+  if (portfolioState.status === "loading" || portfolioState.status === "idle") {
+    return head + '<div class="view-card"><p>Loading your portfolio from Robinhood Chain…</p></div></div>';
+  }
+  if (portfolioState.status === "error") {
+    return head +
+      '<div class="view-card"><h3>Couldn\'t load your portfolio</h3><p>' + esc(portfolioState.error || "The chain read didn't come back. Try again in a moment.") + "</p>" +
+      '<div class="view-actions"><button type="button" class="primary" id="pfRetry">Retry</button></div></div></div>';
+  }
+  var p = portfolioState.data;
+  var hasAssets = p.ethBalance !== "0" || p.tokens.length > 0;
+  var out = head;
+  out += '<div class="view-total">' + (p.totalUsd != null
+    ? "<b>" + fmtUsd(p.totalUsd) + "</b><span>Total value · Robinhood Chain</span>"
+    : "<b>" + esc(p.ethBalance) + " ETH</b><span>Native balance · Robinhood Chain</span>") + "</div>";
+  out += '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
+    '<span style="color:#9db9d2;font-size:12.5px">' + (p.updatedAt ? "Updated " + fmtTime(p.updatedAt) : "") + "</span>" +
+    '<button type="button" class="icon-btn" id="pfRefresh" style="width:32px;height:32px;font-size:14px;margin-left:auto" aria-label="Refresh portfolio">↻</button></div>';
+  if (hasAssets) {
+    out += '<div class="view-card"><h3>Holdings</h3>';
+    if (p.ethBalance !== "0") {
+      out += '<div class="view-row"><span class="coin-badge">ETH</span><div class="grow"><b>Ethereum</b><span>Native coin · gas on Robinhood Chain</span></div><div class="amt"><b>' + esc(p.ethBalance) + "</b><span>" + (p.ethUsdValue != null ? fmtUsd(p.ethUsdValue) : "") + "</span></div></div>";
+    }
+    p.tokens.forEach(function (t) {
+      out += '<div class="view-row"><span class="coin-badge">' + esc((t.symbol || "?").slice(0, 4).toUpperCase()) + '</span><div class="grow"><b>' + esc(t.name) + '</b><span title="' + esc(t.address) + '">' + esc(t.symbol) + " · " + esc(shortAddress(t.address)) + '</span></div><div class="amt"><b>' + esc(t.balance) + "</b><span>" + (t.usdValue != null ? fmtUsd(t.usdValue) : "") + "</span></div></div>";
+    });
+    out += "</div>";
+  } else {
+    out += '<div class="view-card" style="text-align:center;padding:24px 20px"><h3>No assets yet</h3><p style="max-width:420px;margin:8px auto 0">This wallet holds no ETH and none of the tokens trading on Pons right now. Send some ETH on Robinhood Chain to this wallet and it will show up here.</p></div>';
+  }
+  out += '<p class="view-note">Read live from the Robinhood Chain RPC when you open this page. Token balances are checked against the tokens in the snapshot\'s Pons and Robinhood Chain pools; USD values use the snapshot\'s GeckoTerminal pool prices (' + SNAPSHOT_TAKEN_LABEL + ').</p>';
+  return out + "</div>";
+}
+function wirePortfolio() {
+  var si = $("pfSignIn");
+  if (si) si.addEventListener("click", function () { pendingView = "Portfolio"; openAuth("login"); });
+  var rt = $("pfRetry");
+  if (rt) rt.addEventListener("click", function () { loadPortfolio(true); });
+  var rf = $("pfRefresh");
+  if (rf) rf.addEventListener("click", function () { loadPortfolio(true); });
+  if (session && session.walletAddress && portfolioState.status === "idle") loadPortfolio(false);
+}
+
+function rpcBatch(calls) {
+  var out = new Array(calls.length).fill(null);
+  var chain = Promise.resolve();
+  var runChunk = function (start) {
+    var chunk = calls.slice(start, start + 25);
+    var attempt = function (n) {
+      return fetch(RH_RPC, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(chunk.map(function (c, j) { return { jsonrpc: "2.0", id: j, method: c.method, params: c.params }; }))
+      }).then(function (res) {
+        if (res.status === 429 && n === 0) return new Promise(function (r) { setTimeout(r, 900); }).then(function () { return attempt(1); });
+        if (!res.ok) throw new Error("Robinhood Chain RPC returned " + res.status);
+        return res.json();
+      }).then(function (body) {
+        if (!Array.isArray(body)) throw new Error("Robinhood Chain RPC returned an unexpected response");
+        body.forEach(function (item) {
+          if (typeof item.id === "number" && typeof item.result === "string") out[start + item.id] = item.result;
+        });
+      });
+    };
+    return attempt(0);
+  };
+  for (var i = 0; i < calls.length; i += 25) {
+    (function (start) { chain = chain.then(function () { return runChunk(start); }); })(i);
+  }
+  return chain.then(function () { return out; });
+}
+function decodeStringResult(hex) {
+  if (!hex || hex === "0x") return "";
+  var h = hex.slice(2);
+  try {
+    if (h.length === 64) {
+      var bytes = new Uint8Array(32);
+      for (var i = 0; i < 32; i++) bytes[i] = parseInt(h.slice(i * 2, i * 2 + 2), 16);
+      var end = bytes.length;
+      while (end > 0 && bytes[end - 1] === 0) end--;
+      return new TextDecoder().decode(bytes.slice(0, end)).trim();
+    }
+    if (h.length >= 128) {
+      var len = parseInt(h.slice(64, 128), 16);
+      if (!isFinite(len) || len < 0 || len > 512) return "";
+      var dataHex = h.slice(128, 128 + len * 2);
+      var b2 = new Uint8Array(dataHex.length / 2);
+      for (var j = 0; j < b2.length; j++) b2[j] = parseInt(dataHex.slice(j * 2, j * 2 + 2), 16);
+      return new TextDecoder().decode(b2).trim();
+    }
+  } catch (e) { return ""; }
+  return "";
+}
+function fmtUnits(raw, decimals) {
+  if (raw === 0n) return "0";
+  var neg = raw < 0n;
+  var s = (neg ? -raw : raw).toString().padStart(decimals + 1, "0");
+  var int = decimals > 0 ? s.slice(0, s.length - decimals) : s;
+  var frac = decimals > 0 ? s.slice(s.length - decimals).slice(0, 6).replace(/0+$/, "") : "";
+  if (frac) frac = "." + frac;
+  return (neg ? "-" : "") + int + frac;
+}
+function loadPortfolio(rerender) {
+  var address = session && session.walletAddress;
+  if (!address) return;
+  portfolioState = { status: "loading", data: null, error: null };
+  if (rerender && view === "Portfolio") renderView();
+  var candidates = new Map();
+  var snapCand = (SNAPSHOT && SNAPSHOT.candidates) || {};
+  Object.keys(snapCand).forEach(function (k) { candidates.set(k, snapCand[k]); });
+  if (!candidates.has(WETH_RH)) candidates.set(WETH_RH, null);
+  if (!candidates.has(USDG_RH)) candidates.set(USDG_RH, null);
+  var list = Array.from(candidates.keys()).slice(0, 120);
+  var padded = address.slice(2).toLowerCase().padStart(64, "0");
+  var calls = [{ method: "eth_getBalance", params: [address, "latest"] }].concat(
+    list.map(function (t) { return { method: "eth_call", params: [{ to: t, data: "0x70a08231" + padded }, "latest"] }; })
+  );
+  rpcBatch(calls).then(function (results) {
+    var ethWei = results[0] ? BigInt(results[0]) : 0n;
+    var held = [];
+    list.forEach(function (token, i) {
+      var r = results[i + 1];
+      if (!r) return;
+      try { var v = BigInt(r); if (v > 0n) held.push({ token: token, raw: v }); } catch (e) { /* skip */ }
+    });
+    var finish = function (tokens) {
+      var ethPrice = candidates.has(WETH_RH) ? candidates.get(WETH_RH) : null;
+      var ethNumeric = Number(ethWei) / 1e18;
+      var ethUsdValue = ethPrice != null && ethWei > 0n ? ethNumeric * ethPrice : ethWei === 0n ? 0 : null;
+      var allPriced = (ethWei === 0n || ethUsdValue != null) && tokens.every(function (t) { return t.usdValue != null; });
+      var totalUsd = allPriced ? (ethUsdValue || 0) + tokens.reduce(function (sum, t) { return sum + (t.usdValue || 0); }, 0) : null;
+      portfolioState = {
+        status: "ok", error: null,
+        data: { ethBalance: fmtUnits(ethWei, 18), ethUsdValue: ethUsdValue, totalUsd: totalUsd, tokens: tokens, updatedAt: new Date().toISOString() }
+      };
+      if (view === "Portfolio") renderView();
+    };
+    if (!held.length) { finish([]); return; }
+    var metaCalls = [];
+    held.forEach(function (h) {
+      metaCalls.push(
+        { method: "eth_call", params: [{ to: h.token, data: "0x95d89b41" }, "latest"] },
+        { method: "eth_call", params: [{ to: h.token, data: "0x313ce567" }, "latest"] },
+        { method: "eth_call", params: [{ to: h.token, data: "0x06fdde03" }, "latest"] }
+      );
+    });
+    rpcBatch(metaCalls).then(function (meta) {
+      var tokens = held.map(function (h, i) {
+        var symbol = decodeStringResult(meta[i * 3]) || "TOKEN";
+        var decRaw = meta[i * 3 + 1];
+        var decimals = 18;
+        if (decRaw) { var d = Number(BigInt(decRaw)); if (isFinite(d) && d >= 0 && d <= 36) decimals = d; }
+        var name = decodeStringResult(meta[i * 3 + 2]) || symbol;
+        var price = candidates.has(h.token) ? candidates.get(h.token) : null;
+        var numeric = Number(h.raw) / Math.pow(10, decimals);
+        return { address: h.token, symbol: symbol, name: name, balance: fmtUnits(h.raw, decimals), usdValue: price != null && isFinite(numeric) ? numeric * price : null };
+      });
+      tokens.sort(function (a, b) { return (b.usdValue == null ? -1 : b.usdValue) - (a.usdValue == null ? -1 : a.usdValue); });
+      finish(tokens);
+    }).catch(function () { finish([]); });
+  }).catch(function (err) {
+    portfolioState = { status: "error", data: null, error: "Couldn't read this wallet on Robinhood Chain (" + (err && err.message ? err.message : String(err)) + ")." };
+    if (view === "Portfolio") renderView();
+  });
+}
+
+/* ================= Privy auth ================= */
+var PRIVY_APP_ID = "cmwnfjyev001w0hjs0hckuq7w";
+var PRIVY_AUTH_BASE = "https://auth.privy.io";
+var authMode = "signup", authStep = 1, remember = true, authBusy = false;
+
+function privyCall(path, body) {
+  return fetch(PRIVY_AUTH_BASE + path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "privy-app-id": PRIVY_APP_ID },
+    body: JSON.stringify(body)
+  }).catch(function () {
+    throw new Error("Couldn't reach Privy. Check your connection — and that this site's domain is on the allowed-domains list in your Privy dashboard.");
+  }).then(function (res) {
+    return res.text().then(function (txt) {
+      var data = {};
+      try { data = txt ? JSON.parse(txt) : {}; } catch (e) { data = {}; }
+      if (!res.ok) throw new Error(data.error || data.message || ("Privy returned " + res.status));
+      return data;
+    });
+  });
+}
+function identityFromUser(user, fallback) {
+  if (user && user.linked_accounts) {
+    for (var i = 0; i < user.linked_accounts.length; i++) {
+      var a = user.linked_accounts[i];
+      if (a.type === "email" && a.address) return a.address;
+      if (a.type === "wallet" && a.address) return a.address;
+      if ((a.type === "github_oauth" || a.type === "google_oauth") && (a.email || a.username)) return a.email || a.username;
+    }
+    if (user.email && user.email.address) return user.email.address;
+    if (user.wallet && user.wallet.address) return user.wallet.address;
+  }
+  return fallback || "Privy user";
+}
+function walletAddressFromUser(user, fallback) {
+  if (user && user.wallet && user.wallet.address && ADDRESS_RE.test(user.wallet.address)) return user.wallet.address;
+  var accs = (user && user.linked_accounts) || [];
+  for (var i = 0; i < accs.length; i++) {
+    if (accs[i].type === "wallet" && accs[i].address && ADDRESS_RE.test(accs[i].address)) return accs[i].address;
+  }
+  if (ADDRESS_RE.test(fallback)) return fallback;
+  return null;
+}
+function setAuthAlert(msg, isErr) {
+  var a = $("authAlert");
+  if (!msg) { a.className = "auth-alert"; a.textContent = ""; return; }
+  a.textContent = msg;
+  a.className = "auth-alert show" + (isErr ? " err" : "");
+}
+function setAuthBusy(b) {
+  authBusy = b;
+  ["authSendBtn", "authVerifyBtn", "oauthGithub", "oauthGoogle", "walletLoginBtn"].forEach(function (id) {
+    var el = $(id); if (el) el.disabled = b;
+  });
+  $("authSendBtn").textContent = b && authStep === 1 ? "Sending…" : "Send Code";
+  $("authVerifyBtn").textContent = b && authStep === 2 ? "Verifying…" : "Verify Code";
+}
+function setAuthStep(step) {
+  authStep = step;
+  $("authStep1").hidden = step !== 1;
+  $("authStep2").hidden = step !== 2;
+  $("authStepLabel").textContent = step + " of 2";
+}
+function openAuth(mode) {
+  authMode = mode;
+  setAuthAlert(null);
+  setAuthStep(1);
+  $("authModeLabel").textContent = mode === "signup" ? "Sign up" : "Log in";
+  $("authTitle").textContent = mode === "signup" ? "Create an Account" : "Welcome Back";
+  $("authOverlay").classList.add("show");
+  setTimeout(function () { $("authEmail").focus(); }, 60);
+}
+function closeAuth() { $("authOverlay").classList.remove("show"); }
+function renderSession() {
+  var signed = !!session;
+  $("authArea").hidden = signed;
+  $("accountWrap").hidden = !signed;
+  if (signed) {
+    $("accountWho").textContent = session.identity;
+    $("accountAvatar").textContent = (session.identity || "K").charAt(0).toUpperCase();
+    $("accountMenuId").textContent = session.identity;
+    $("statusIdentity").textContent = session.identity;
+  } else {
+    $("statusIdentity").textContent = "Not signed in";
+    $("accountMenu").hidden = true;
+  }
+}
+function setSignedIn(identity, refreshToken, user) {
+  session = { identity: identity, refreshToken: remember ? refreshToken : null, walletAddress: walletAddressFromUser(user, identity) };
+  portfolioState = { status: "idle", data: null, error: null };
+  closeAuth();
+  $("accountMenu").hidden = true;
+  renderSession();
+  showToast("Signed in as " + identity);
+  if (pendingView) {
+    var pv = pendingView;
+    pendingView = null;
+    setTimeout(function () { openView(pv); }, 250);
+  } else if (view === "Portfolio") {
+    renderView();
+  }
+}
+function setSignedOut() {
+  var rt = session && session.refreshToken;
+  session = null;
+  portfolioState = { status: "idle", data: null, error: null };
+  $("accountMenu").hidden = true;
+  renderSession();
+  showToast("You are signed out");
+  if (view === "Portfolio" || view === "Wallet") renderView();
+  if (rt) privyCall("/api/v1/logout", { refresh_token: rt }).catch(function () {});
+}
+$("btnLogin").addEventListener("click", function () { openAuth("login"); });
+$("btnSignup").addEventListener("click", function () { openAuth("signup"); });
+$("authClose").addEventListener("click", closeAuth);
+$("authBackdrop").addEventListener("click", closeAuth);
+$("rememberSwitch").addEventListener("click", function () {
+  remember = !remember;
+  $("rememberSwitch").setAttribute("aria-checked", remember ? "true" : "false");
+});
+$("accountChip").addEventListener("click", function () {
+  var m = $("accountMenu");
+  var open = m.hidden;
+  m.hidden = !open;
+  $("accountChip").setAttribute("aria-expanded", open ? "true" : "false");
+});
+$("btnLogout").addEventListener("click", setSignedOut);
+document.addEventListener("click", function (e) {
+  if (!$("accountWrap").contains(e.target)) { $("accountMenu").hidden = true; $("accountChip").setAttribute("aria-expanded", "false"); }
+});
+$("authEmailForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+  setAuthAlert(null);
+  var email = $("authEmail").value.trim();
+  if (!email || email.indexOf("@") < 1) { setAuthAlert("Enter a valid email address first.", true); return; }
+  setAuthBusy(true);
+  privyCall("/api/v1/passwordless/init", { email: email }).then(function () {
+    setAuthStep(2);
+    $("authCodeEmail").textContent = email;
+    setTimeout(function () { $("authCode").focus(); }, 60);
+  }).catch(function (err) {
+    setAuthAlert("Privy couldn't send the code: " + (err && err.message ? err.message : String(err)), true);
+  }).then(function () { setAuthBusy(false); });
+});
+$("authCodeForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+  setAuthAlert(null);
+  var code = $("authCode").value.trim();
+  if (!code) { setAuthAlert("Enter the code from your email.", true); return; }
+  setAuthBusy(true);
+  privyCall("/api/v1/passwordless/authenticate", { email: $("authEmail").value.trim(), code: code, mode: "login-or-sign-up" }).then(function (data) {
+    setSignedIn(identityFromUser(data.user, $("authEmail").value.trim()), data.refresh_token || null, data.user);
+  }).catch(function (err) {
+    setAuthAlert("Privy couldn't verify that code: " + (err && err.message ? err.message : String(err)), true);
+  }).then(function () { setAuthBusy(false); });
+});
+$("authBackLink").addEventListener("click", function () { setAuthStep(1); setAuthAlert(null); });
+function oauth(provider) {
+  setAuthAlert(null);
+  setAuthBusy(true);
+  privyCall("/api/v1/oauth/init", { provider: provider, redirect_to: window.location.href }).then(function (data) {
+    if (data.url) {
+      var w = window.open(data.url, "crumblePrivyOAuth", "width=520,height=640");
+      if (!w) setAuthAlert("Your browser blocked the Privy sign-in window — allow popups for this site and try again.", true);
+      else showToast("Continue in the Privy window to finish signing in");
+    } else {
+      setAuthAlert("Privy didn't return a sign-in URL for " + provider + ". Check that " + provider + " login is enabled in your Privy dashboard.", true);
+    }
+  }).catch(function (err) {
+    setAuthAlert("Privy couldn't start " + provider + " sign-in: " + (err && err.message ? err.message : String(err)), true);
+  }).then(function () { setAuthBusy(false); });
+}
+$("oauthGithub").addEventListener("click", function () { oauth("github"); });
+$("oauthGoogle").addEventListener("click", function () { oauth("google"); });
+$("walletLoginBtn").addEventListener("click", function () {
+  setAuthAlert(null);
+  var eth = window.ethereum;
+  if (!eth) {
+    setAuthAlert("No Ethereum wallet was found in this browser. Install a wallet extension, or use email, GitHub, or Google instead.", true);
+    return;
+  }
+  setAuthBusy(true);
+  var address = null;
+  eth.request({ method: "eth_requestAccounts" }).then(function (accs) {
+    address = accs && accs[0];
+    if (!address) throw new Error("No account was shared by the wallet.");
+    return privyCall("/api/v1/siwe/init", { address: address });
+  }).then(function (init) {
+    var nonce = init.nonce || "";
+    var message = init.message ||
+      (window.location.host + " wants you to sign in with your Ethereum account:\n" + address + "\n\nSign in to Crumble.\n\nURI: " + window.location.origin + "\nVersion: 1\nChain ID: 1\nNonce: " + nonce + "\nIssued At: " + new Date().toISOString());
+    return eth.request({ method: "personal_sign", params: [message, address] }).then(function (signature) {
+      return privyCall("/api/v1/siwe/authenticate", { message: message, signature: signature });
+    });
+  }).then(function (data) {
+    setSignedIn(identityFromUser(data.user, address), data.refresh_token || null, data.user);
+  }).catch(function (err) {
+    setAuthAlert("Wallet sign-in didn't finish: " + (err && err.message ? err.message : String(err)), true);
+  }).then(function () { setAuthBusy(false); });
+});
+
+/* ================= desk: ask bar + 3-agent demo ================= */
+var timers = [], running = false, voiceOn = false;
+var feet = {
+  terminal: { text: "Filtering today's coins", done: false },
+  browser: { text: "Checking the dev's wallet", done: false },
+  chart: { text: "Watching the chart for a retest", done: false }
+};
+function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
+function setFoot(id, text, done) {
+  feet[id] = { text: text, done: done };
+  var extra = id === "terminal" ? " · Snapshot " + SNAPSHOT_TAKEN_TIME : "";
+  $("footText-" + id).textContent = text + extra;
+  $("footSpin-" + id).classList.toggle("idle", done);
+}
+function applyDims() {
+  $("win-terminal").classList.toggle("dim", count < 1);
+  $("win-browser").classList.toggle("dim", count < 2);
+  $("win-chart").classList.toggle("dim", count < 3);
+}
+var runSeq = 0;
+function resetDemo() {
+  runSeq++;
+  timers.forEach(clearTimeout);
+  timers = [];
+  running = false;
+  $("os").classList.remove("playing");
+  renderDeskTerminal(0);
+  Array.prototype.forEach.call(document.querySelectorAll("#checksList [data-check]"), function (li) { li.classList.remove("done"); });
+  $("verdictLine").classList.remove("show");
+  $("resultCard").classList.remove("show");
+  $("askErrorCard").classList.remove("show");
+  setFoot("terminal", "Filtering today's coins", false);
+  setFoot("browser", "Checking the dev's wallet", false);
+  setFoot("chart", "Watching the chart for a retest", false);
+}
+function showAskAnswer(data) {
+  var verdict = String(data.verdict || "").toUpperCase();
+  var pill = $("resultPill");
+  var label = verdict || "ANSWER";
+  if (data.coin) label += " · " + String(data.coin).toUpperCase();
+  pill.textContent = label;
+  pill.className = "pill " + (verdict === "BUY" ? "buy" : verdict === "PASS" ? "pass" : verdict === "WATCH" ? "watch" : "src");
+  $("resultTitle").textContent = data.title || "Crumble's answer";
+  $("resultSrc").textContent = "Live · Gemini" + (data.poolsLive ? " · Pons pools" : "");
+  $("resultBody").textContent = data.answer || "";
+  $("resultActions").hidden = true;
+  $("askErrorCard").classList.remove("show");
+  $("resultCard").classList.add("show");
+}
+function showAskError(msg) {
+  $("resultCard").classList.remove("show");
+  $("askErrorBody").textContent = msg;
+  $("askErrorCard").classList.add("show");
+}
+function askCrumbleApi(q) {
+  return fetch("/api/ask", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question: q, agents: count })
+  }).then(function (res) {
+    return res.text().then(function (txt) {
+      var data = null;
+      try { data = txt ? JSON.parse(txt) : null; } catch (e) { data = null; }
+      if (!res.ok) {
+        throw new Error(data && data.error ? data.error : ("/api/ask returned HTTP " + res.status + (res.status === 404 ? " — the serverless function isn't deployed at this address" : "")));
+      }
+      if (!data || !data.answer) throw new Error(data && data.error ? data.error : "/api/ask replied without an answer.");
+      return data;
+    });
+  }, function () {
+    throw new Error("Couldn't reach /api/ask at all — the request never left the desk or the function isn't running.");
+  });
+}
+function runCrumble(promptText) {
+  if (running) return;
+  var q = (promptText != null ? promptText : $("askInput").value).trim();
+  if (!q) {
+    showToast("Type a question first — e.g. “Which new Pons pool looks strongest right now?”");
+    $("askInput").focus();
+    return;
+  }
+  running = true;
+  resetDemo();
+  running = true;
+  var myRun = runSeq;
+  $("runStatus").textContent = "Running: " + q;
+  $("os").classList.add("playing");
+  var n = Math.max(deskRows.length, 6);
+  if (count >= 1) {
+    later(function () { setFoot("terminal", "Scanning graduated coins…", false); }, 300);
+    for (var i = 0; i < n; i++) (function (k) { later(function () { renderDeskTerminal(k + 1); }, 700 + k * 260); })(i);
+    later(function () { setFoot("terminal", "Pool scan done", true); }, 700 + n * 260 + 200);
+  }
+  if (count >= 2) {
+    later(function () { setFoot("browser", "Checking the dev's wallet…", false); }, 600);
+    var checkLis = document.querySelectorAll("#checksList [data-check]");
+    for (var j = 0; j < 4; j++) (function (k) { later(function () { if (checkLis[k]) checkLis[k].classList.add("done"); }, 1100 + k * 520); })(j);
+    later(function () { $("verdictLine").classList.add("show"); setFoot("browser", "Wrote its notes", true); }, 1100 + 4 * 520 + 250);
+  }
+  if (count >= 3) {
+    later(function () { setFoot("chart", "Watching the chart for a retest…", false); }, 900);
+    later(function () { setFoot("chart", "Chart pass done", true); }, 3600);
+  }
+  var animMs = count >= 2 ? 3500 : 2400;
+  var animDone = new Promise(function (resolve) { later(resolve, animMs); });
+  var settled = askCrumbleApi(q).then(
+    function (data) { return { ok: true, data: data }; },
+    function (err) { return { ok: false, error: err }; }
+  );
+  Promise.all([animDone, settled]).then(function (r) {
+    if (myRun !== runSeq) return; // a newer run or a reset took over
+    running = false;
+    if (r[1].ok) {
+      showAskAnswer(r[1].data);
+      $("runStatus").textContent = "Done — Gemini answered from live Pons pool data. The final call is always yours.";
+    } else {
+      var err = r[1].error;
+      showAskError("The live AI didn't come back: " + (err && err.message ? err.message : String(err)));
+      $("runStatus").textContent = "The AI couldn't answer — see the error card under the command bar.";
+    }
+  });
+}
+function updateSendBtn() { $("sendBtn").hidden = $("askInput").value.trim().length === 0; }
+$("askInput").addEventListener("input", updateSendBtn);
+$("askForm").addEventListener("submit", function (e) { e.preventDefault(); runCrumble(); });
+$("attachBtn").addEventListener("click", function () { showToast("Attach a coin address, a wallet, or a chart screenshot as context"); });
+$("walletCycleBtn").addEventListener("click", function () {
+  walletIdx = (walletIdx + 1) % WALLETS.length;
+  $("walletCycleLabel").textContent = WALLETS[walletIdx];
+  showToast(walletIdx === 0 ? "No-wallet mode — research and watching still work" : "Active wallet: " + WALLETS[walletIdx]);
+});
+$("stepDown").addEventListener("click", function () { count = Math.max(1, count - 1); $("agentCount").textContent = count; applyDims(); });
+$("stepUp").addEventListener("click", function () {
+  var n = Math.min(6, count + 1);
+  if (n !== count) showToast(n + " Crumble agents active");
+  count = n; $("agentCount").textContent = count; applyDims();
+});
+function toggleVoice() {
+  if (voiceOn) { voiceOn = false; $("voiceBtn").classList.remove("listening"); return; }
+  voiceOn = true;
+  $("voiceBtn").classList.add("listening");
+  showToast("Listening… say your command");
+  setTimeout(function () {
+    if (voiceOn) {
+      $("askInput").value = "Find a coin that graduated today, check its dev, watch its chart";
+      updateSendBtn();
+      showToast("Voice command recognized — hit Run");
+    }
+    voiceOn = false;
+    $("voiceBtn").classList.remove("listening");
+  }, 1400);
+}
+$("micBtn").addEventListener("click", toggleVoice);
+$("voiceBtn").addEventListener("click", toggleVoice);
+$("prepTxBtn").addEventListener("click", function () { showToast("Ask Crumble about a specific coin trade and it will walk you through preparing it — nothing is signed from an answer card"); });
+$("justWatchBtn").addEventListener("click", function () { showToast("Okay — Crumble keeps watching and calls you when the level retests"); });
+setFoot("terminal", feet.terminal.text, false);
+applyDims();
+
+/* gentle intro after load: reveal the terminal's calls only. No verdict
+   card is shown until the visitor actually asks — answers come from
+   /api/ask (Gemini), never from a canned replay. */
+setTimeout(function () {
+  if (running) return;
+  var n = Math.max(deskRows.length, 6);
+  for (var i = 0; i < n; i++) (function (k) { later(function () { renderDeskTerminal(k + 1); }, 700 + k * 260); })(i);
+}, 900);
+
+/* ================= topbar / dock / bottombar ================= */
+$("navBack").addEventListener("click", function () {
+  if (window.history.length > 1) window.history.back(); else showToast("Back — nothing earlier in this tab");
+});
+$("navForward").addEventListener("click", function () {
+  if (window.history.length > 1) window.history.forward(); else showToast("Forward — nothing ahead in this tab");
+});
+$("navNewTask").addEventListener("click", function () { sideGo("New Task"); });
+$("extBtn").addEventListener("click", function () { sideGo("Extension"); });
+Array.prototype.forEach.call(document.querySelectorAll("#dock [data-dock]"), function (b) {
+  b.addEventListener("click", function () {
+    var name = b.getAttribute("data-dock");
+    Array.prototype.forEach.call(document.querySelectorAll("#dock [data-dock]"), function (x) { x.classList.remove("active"); });
+    b.classList.add("active");
+    if (name === "Wallet") sideGo("Wallet");
+    else if (name === "Terminal") sideGo("Terminal");
+    else if (name === "Desk" || name === "Desks") sideGo("Desk");
+    else if (name === "Extensions") sideGo("Extension");
+    else showToast(name + " — focused on the desk");
+  });
+});
+$("modeDesk").addEventListener("click", function () {
+  $("modeDesk").classList.add("active"); $("modeTerminal").classList.remove("active"); sideGo("Desk");
+});
+$("modeTerminal").addEventListener("click", function () {
+  $("modeTerminal").classList.add("active"); $("modeDesk").classList.remove("active"); sideGo("Terminal");
+});
+
+/* ================= window dragging (desktop) ================= */
+Array.prototype.forEach.call(document.querySelectorAll(".win-head"), function (head) {
+  head.addEventListener("pointerdown", function (e) {
+    if (window.innerWidth <= 900 || !window.matchMedia("(pointer:fine)").matches) return;
+    var win = head.closest(".win");
+    var canvas = $("canvas");
+    if (!win || !canvas) return;
+    var sx = e.clientX, sy = e.clientY;
+    var r = win.getBoundingClientRect(), c = canvas.getBoundingClientRect();
+    var ox = r.left - c.left, oy = r.top - c.top;
+    win.style.left = ox + "px";
+    win.style.top = oy + "px";
+    win.style.right = "auto";
+    win.style.bottom = "auto";
+    win.style.zIndex = "15";
+    function move(ev) { win.style.left = (ox + ev.clientX - sx) + "px"; win.style.top = (oy + ev.clientY - sy) + "px"; }
+    function up() {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+    }
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+  });
+});
+
+/* ================= carousel (mobile) ================= */
+var dotTick = false;
+function setActiveDot(i) {
+  Array.prototype.forEach.call($("carouselDots").children, function (d, k) { d.classList.toggle("active", k === i); });
+}
+$("winTrack").addEventListener("scroll", function () {
+  if (dotTick) return;
+  dotTick = true;
+  requestAnimationFrame(function () {
+    dotTick = false;
+    var track = $("winTrack");
+    var center = track.scrollLeft + track.clientWidth / 2;
+    var best = 0, bestD = Infinity;
+    Array.prototype.forEach.call(track.children, function (el, i) {
+      var dist = Math.abs(el.offsetLeft + el.clientWidth / 2 - center);
+      if (dist < bestD) { bestD = dist; best = i; }
+    });
+    setActiveDot(best);
+  });
+});
+Array.prototype.forEach.call($("carouselDots").children, function (d, i) {
+  d.addEventListener("click", function () {
+    var track = $("winTrack");
+    var slide = track.children[i];
+    if (slide) track.scrollTo({ left: slide.offsetLeft - (track.clientWidth - slide.clientWidth) / 2, behavior: "smooth" });
+  });
+});
+
+/* ================= demo slot drift ================= */
+(function () {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  var idx = 0;
+  var slotEl = $("demoSlot");
+  function applySlot() {
+    var s = SLOT_SPOTS[idx];
+    slotEl.style.left = s.left; slotEl.style.top = s.top;
+    slotEl.style.width = s.width + "px"; slotEl.style.height = s.height + "px";
+  }
+  applySlot();
+  setInterval(function () { idx = (idx + 1) % SLOT_SPOTS.length; applySlot(); }, 4200);
+})();
+
+/* ================= escape closes overlays ================= */
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape") {
+    setSideOpen(false); closeView(); closeAuth();
+    $("accountMenu").hidden = true;
+  }
+});
+
+/* ================= entrance sequence =================
+   The desk renders in its pre state. The flip to "play" waits until the
+   desk is ACTUALLY on screen — an IntersectionObserver on the desk root
+   is the primary signal, because a shell can pre-load this page in a
+   webview whose document already reports "visible" (and whose rAFs
+   already tick) long before the visitor is looking at it; keying off
+   visibilityState alone let the whole sequence finish unseen. First
+   interaction, focus, pageshow, and a long fallback timer act as
+   backstops so the desk never stays hidden. The play itself is CSS
+   keyframe animations, which run deterministically once the class lands.
+   After the sequence, both classes drop. */
+(function () {
+  var os = $("os");
+  var disposed = false, started = false;
+  var raf1 = 0, raf2 = 0, clearTimer = null, fallbackTimer = null;
+  var ioSupported = "IntersectionObserver" in window;
+  var ioSeen = !ioSupported;
+  var io = null;
+  function start() {
+    if (started || disposed) return;
+    started = true;
+    document.removeEventListener("visibilitychange", tryStart);
+    window.removeEventListener("focus", tryStart);
+    window.removeEventListener("pageshow", tryStart);
+    window.removeEventListener("pointerdown", onInteract);
+    window.removeEventListener("touchstart", onInteract);
+    if (io) io.disconnect();
+    os.classList.remove("intro-pre");
+    os.classList.add("intro-play");
+    clearTimer = setTimeout(function () { if (!disposed) os.classList.remove("intro-play"); }, 2400);
+  }
+  function arm() {
+    cancelAnimationFrame(raf1);
+    cancelAnimationFrame(raf2);
+    raf1 = requestAnimationFrame(function () {
+      raf2 = requestAnimationFrame(function () { if (!disposed) start(); });
+    });
+  }
+  function tryStart() {
+    if (started || disposed) return;
+    if (document.visibilityState !== "visible") return;
+    if (!ioSeen) return;
+    arm();
+  }
+  function onInteract() { ioSeen = true; tryStart(); }
+  if (ioSupported) {
+    io = new IntersectionObserver(function (entries) {
+      if (entries.some(function (e) { return e.isIntersecting; })) { ioSeen = true; tryStart(); }
+    }, { threshold: 0.05 });
+    io.observe(os);
+  }
+  document.addEventListener("visibilitychange", tryStart);
+  window.addEventListener("focus", tryStart);
+  window.addEventListener("pageshow", tryStart);
+  window.addEventListener("pointerdown", onInteract);
+  window.addEventListener("touchstart", onInteract);
+  tryStart();
+  fallbackTimer = setTimeout(function () {
+    ioSeen = true;
+    if (document.visibilityState === "visible") start();
+  }, 12000);
+})();
+</script>
+</body>
+</html>
